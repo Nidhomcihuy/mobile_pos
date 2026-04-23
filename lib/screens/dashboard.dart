@@ -442,7 +442,7 @@ class _DashboardState extends State<Dashboard> {
             child: SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                onPressed: () {},
+                onPressed: () => Navigator.pushNamed(context, '/detail'),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFFD8B84B),
                   foregroundColor: Colors.white,
@@ -453,7 +453,7 @@ class _DashboardState extends State<Dashboard> {
                   elevation: 0,
                 ),
                 child: Text(
-                  'Tambah',
+                  'Lihat',
                   style: TextStyle(fontSize: r.font(12), fontFamily: 'Inter'),
                 ),
               ),

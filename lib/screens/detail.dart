@@ -1,20 +1,8 @@
 import 'package:flutter/material.dart';
 import '../utils/responsive_helper.dart';
 
-class Detail extends StatefulWidget {
+class Detail extends StatelessWidget {
   const Detail({super.key});
-
-  @override
-  State<Detail> createState() => _DetailState();
-}
-
-class _DetailState extends State<Detail> {
-  int _qty = 1;
-
-  void _increment() => setState(() => _qty++);
-  void _decrement() {
-    if (_qty > 1) setState(() => _qty--);
-  }
 
   String _formatPrice(int price) {
     String priceStr = price.toString();
@@ -207,141 +195,6 @@ class _DetailState extends State<Detail> {
               _buildInfoCard('Kategori', 'Mie Instan', r),
             ],
           ),
-          SizedBox(height: r.space(24)),
-          // Add to transaction section
-          Container(
-            width: double.infinity,
-            padding: EdgeInsets.all(r.space(20)),
-            decoration: BoxDecoration(
-              color: const Color(0xFFFDF5D8),
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: const Color(0x7FD8B84B), width: 2),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Tambah Ke Transaksi',
-                  style: TextStyle(
-                    color: const Color(0xFF898989),
-                    fontSize: r.font(20),
-                    fontFamily: 'Roboto',
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                SizedBox(height: r.space(16)),
-                Row(
-                  children: [
-                    // Qty controls
-                    _qtyButton(Icons.remove, _decrement, r),
-                    Container(
-                      width: r.space(60),
-                      height: r.space(48),
-                      margin: EdgeInsets.symmetric(horizontal: r.space(8)),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(5),
-                        border: Border.all(color: const Color(0xFF939393)),
-                      ),
-                      alignment: Alignment.center,
-                      child: Text(
-                        '$_qty',
-                        style: TextStyle(fontSize: r.font(20), fontWeight: FontWeight.w500),
-                      ),
-                    ),
-                    _qtyButton(Icons.add, _increment, r),
-                    const Spacer(),
-                    // Subtotal
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        Text(
-                          'Subtotal:',
-                          style: TextStyle(
-                            color: const Color(0xFF898989),
-                            fontSize: r.font(18),
-                            fontFamily: 'Roboto',
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        Text(
-                          _formatPrice(unitPrice * _qty),
-                          style: TextStyle(
-                            color: const Color(0xFF1D1B1B),
-                            fontSize: r.font(24),
-                            fontFamily: 'Inter',
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-          SizedBox(height: r.space(24)),
-          // Action buttons
-          Row(
-            children: [
-              Expanded(
-                flex: 3,
-                child: InkWell(
-                  onTap: () {},
-                  borderRadius: BorderRadius.circular(5),
-                  child: Container(
-                    height: r.space(48),
-                    decoration: BoxDecoration(
-                      color: const Color(0xADA1862D),
-                      borderRadius: BorderRadius.circular(5),
-                    ),
-                    alignment: Alignment.center,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.shopping_cart_outlined, color: Colors.white, size: r.icon(22)),
-                        SizedBox(width: r.space(8)),
-                        Text(
-                          'Tambah Ke Kasir',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: r.font(18),
-                            fontFamily: 'Roboto',
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-              SizedBox(width: r.space(12)),
-              Expanded(
-                flex: 2,
-                child: InkWell(
-                  onTap: () => Navigator.pop(context),
-                  borderRadius: BorderRadius.circular(5),
-                  child: Container(
-                    height: r.space(48),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFD6D2A0),
-                      borderRadius: BorderRadius.circular(5),
-                    ),
-                    alignment: Alignment.center,
-                    child: Text(
-                      'Batal',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: r.font(18),
-                        fontFamily: 'Roboto',
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
         ],
       ),
     );
@@ -388,22 +241,7 @@ class _DetailState extends State<Detail> {
     );
   }
 
-  Widget _qtyButton(IconData icon, VoidCallback onTap, Responsive r) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(5),
-      child: Container(
-        width: r.space(52),
-        height: r.space(48),
-        decoration: BoxDecoration(
-          color: const Color(0xADA1862D),
-          borderRadius: BorderRadius.circular(5),
-        ),
-        alignment: Alignment.center,
-        child: Icon(icon, color: Colors.white, size: r.icon(24)),
-      ),
-    );
-  }
+
 
   // ────────────────────────────────────────
   //  HEADER
