@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../utils/responsive_helper.dart';
 
 class Dashboard extends StatefulWidget {
   const Dashboard({super.key});
@@ -20,90 +21,18 @@ class _DashboardState extends State<Dashboard> {
   ];
 
   final List<Map<String, dynamic>> _products = [
-    {
-      'name': 'Indomie Soto',
-      'price': 3500,
-      'stock': 50,
-      'image': 'assets/icons/Hamburger.png',
-      'category': 'Makanan',
-    },
-    {
-      'name': 'Beras Maknyuss',
-      'price': 78000,
-      'stock': 50,
-      'image': 'assets/icons/Grains Of Rice.png',
-      'category': 'Sembako',
-    },
-    {
-      'name': 'Sari Roti Sandwich',
-      'price': 5000,
-      'stock': 50,
-      'image': 'assets/icons/Doughnut.png',
-      'category': 'Snack',
-    },
-    {
-      'name': 'Indomie Goreng',
-      'price': 3500,
-      'stock': 50,
-      'image': 'assets/icons/Hamburger.png',
-      'category': 'Makanan',
-    },
-    {
-      'name': 'Tepung Segitiga Biru',
-      'price': 12000,
-      'stock': 50,
-      'image': 'assets/icons/Grains Of Rice.png',
-      'category': 'Sembako',
-    },
-    {
-      'name': 'Gulaku',
-      'price': 18000,
-      'stock': 50,
-      'image': 'assets/icons/Grains Of Rice.png',
-      'category': 'Sembako',
-    },
-    {
-      'name': 'Indomie Pedas',
-      'price': 3500,
-      'stock': 50,
-      'image': 'assets/icons/Hamburger.png',
-      'category': 'Makanan',
-    },
-    {
-      'name': 'UHT Frisian Flag',
-      'price': 5500,
-      'stock': 50,
-      'image': 'assets/icons/Soda.png',
-      'category': 'Minuman',
-    },
-    {
-      'name': 'Santan Sasa',
-      'price': 8000,
-      'stock': 50,
-      'image': 'assets/icons/Soda.png',
-      'category': 'Minuman',
-    },
-    {
-      'name': 'UHT Cimory',
-      'price': 6000,
-      'stock': 50,
-      'image': 'assets/icons/Soda.png',
-      'category': 'Minuman',
-    },
-    {
-      'name': 'Kanzler Singles',
-      'price': 9000,
-      'stock': 50,
-      'image': 'assets/icons/Hamburger.png',
-      'category': 'Makanan',
-    },
-    {
-      'name': 'Cimory Yoghurt',
-      'price': 9500,
-      'stock': 50,
-      'image': 'assets/icons/Soda.png',
-      'category': 'Minuman',
-    },
+    {'name': 'Indomie Soto', 'price': 3500, 'stock': 50, 'image': 'assets/icons/Hamburger.png', 'category': 'Makanan'},
+    {'name': 'Beras Maknyuss', 'price': 78000, 'stock': 50, 'image': 'assets/icons/Grains Of Rice.png', 'category': 'Sembako'},
+    {'name': 'Sari Roti Sandwich', 'price': 5000, 'stock': 50, 'image': 'assets/icons/Doughnut.png', 'category': 'Snack'},
+    {'name': 'Indomie Goreng', 'price': 3500, 'stock': 50, 'image': 'assets/icons/Hamburger.png', 'category': 'Makanan'},
+    {'name': 'Tepung Segitiga Biru', 'price': 12000, 'stock': 50, 'image': 'assets/icons/Grains Of Rice.png', 'category': 'Sembako'},
+    {'name': 'Gulaku', 'price': 18000, 'stock': 50, 'image': 'assets/icons/Grains Of Rice.png', 'category': 'Sembako'},
+    {'name': 'Indomie Pedas', 'price': 3500, 'stock': 50, 'image': 'assets/icons/Hamburger.png', 'category': 'Makanan'},
+    {'name': 'UHT Frisian Flag', 'price': 5500, 'stock': 50, 'image': 'assets/icons/Soda.png', 'category': 'Minuman'},
+    {'name': 'Santan Sasa', 'price': 8000, 'stock': 50, 'image': 'assets/icons/Soda.png', 'category': 'Minuman'},
+    {'name': 'UHT Cimory', 'price': 6000, 'stock': 50, 'image': 'assets/icons/Soda.png', 'category': 'Minuman'},
+    {'name': 'Kanzler Singles', 'price': 9000, 'stock': 50, 'image': 'assets/icons/Hamburger.png', 'category': 'Makanan'},
+    {'name': 'Cimory Yoghurt', 'price': 9500, 'stock': 50, 'image': 'assets/icons/Soda.png', 'category': 'Minuman'},
   ];
 
   String _formatPrice(int price) {
@@ -133,26 +62,25 @@ class _DashboardState extends State<Dashboard> {
 
   @override
   Widget build(BuildContext context) {
+    final r = Responsive.of(context);
+
     return Scaffold(
       backgroundColor: const Color(0xFFFFFDE3),
       body: Column(
         children: [
-          // ===== HEADER =====
-          _buildHeader(),
-          // ===== NAV BAR =====
-          _buildNavBar(),
-          // ===== CONTENT =====
+          _buildHeader(r),
+          _buildNavBar(r),
           Expanded(
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
+              padding: EdgeInsets.symmetric(horizontal: r.space(20)),
               child: Column(
                 children: [
-                  const SizedBox(height: 16),
-                  _buildSearchBar(),
-                  const SizedBox(height: 14),
-                  _buildCategoryFilters(),
-                  const SizedBox(height: 18),
-                  Expanded(child: _buildProductGrid()),
+                  SizedBox(height: r.space(16)),
+                  _buildSearchBar(r),
+                  SizedBox(height: r.space(14)),
+                  _buildCategoryFilters(r),
+                  SizedBox(height: r.space(18)),
+                  Expanded(child: _buildProductGrid(r)),
                 ],
               ),
             ),
@@ -165,10 +93,10 @@ class _DashboardState extends State<Dashboard> {
   // ────────────────────────────────────────
   //  HEADER
   // ────────────────────────────────────────
-  Widget _buildHeader() {
+  Widget _buildHeader(Responsive r) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+      padding: EdgeInsets.symmetric(horizontal: r.space(20), vertical: r.space(14)),
       decoration: const BoxDecoration(
         color: Color(0xFFBDB76B),
         borderRadius: BorderRadius.only(
@@ -180,50 +108,49 @@ class _DashboardState extends State<Dashboard> {
         bottom: false,
         child: Row(
           children: [
-            // Logo placeholder
             Container(
-              width: 48,
-              height: 48,
+              width: r.icon(48),
+              height: r.icon(48),
               decoration: BoxDecoration(
                 color: Colors.white.withOpacity(0.2),
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: const Icon(Icons.store, color: Colors.white, size: 28),
+              child: Icon(Icons.store, color: Colors.white, size: r.icon(28)),
             ),
-            const SizedBox(width: 12),
-            // Store info
-            const Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'POS TOSERBA',
-                  style: TextStyle(
-                    color: Color(0xFFFFFEE4),
-                    fontSize: 22,
-                    fontWeight: FontWeight.w800,
-                    fontFamily: 'Inter',
+            SizedBox(width: r.space(12)),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'POS TOSERBA',
+                    style: TextStyle(
+                      color: const Color(0xFFFFFEE4),
+                      fontSize: r.font(22),
+                      fontWeight: FontWeight.w800,
+                      fontFamily: 'Inter',
+                    ),
                   ),
-                ),
-                Text(
-                  'jl. indah no.15, Sidoarjo',
-                  style: TextStyle(
-                    color: Color(0xFFFFFEE4),
-                    fontSize: 14,
-                    fontFamily: 'Inter',
+                  Text(
+                    'jl. indah no.15, Sidoarjo',
+                    style: TextStyle(
+                      color: const Color(0xFFFFFEE4),
+                      fontSize: r.font(14),
+                      fontFamily: 'Inter',
+                    ),
+                    overflow: TextOverflow.ellipsis,
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-            const Spacer(),
-            // Kasir info
-            const Column(
+            Column(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 Text(
                   'Kasir: Dewi',
                   style: TextStyle(
-                    color: Color(0xFFFFFEE4),
-                    fontSize: 18,
+                    color: const Color(0xFFFFFEE4),
+                    fontSize: r.font(18),
                     fontWeight: FontWeight.w800,
                     fontFamily: 'Inter',
                   ),
@@ -231,8 +158,8 @@ class _DashboardState extends State<Dashboard> {
                 Text(
                   '30/02/2026',
                   style: TextStyle(
-                    color: Color(0xFFFFFEE4),
-                    fontSize: 14,
+                    color: const Color(0xFFFFFEE4),
+                    fontSize: r.font(14),
                     fontFamily: 'Inter',
                   ),
                 ),
@@ -247,14 +174,14 @@ class _DashboardState extends State<Dashboard> {
   // ────────────────────────────────────────
   //  NAVIGATION BAR
   // ────────────────────────────────────────
-  Widget _buildNavBar() {
-    final navItems = ['Dashboard', 'Kasir', 'Riwayat', 'Stok'];
-    final navRoutes = ['/dashboard', '/kasir', '/riwayat', '/stok'];
-    const selectedIndex = 0; // Dashboard is active
+  Widget _buildNavBar(Responsive r) {
+    final navItems = ['Dashboard', 'Kasir', 'Riwayat'];
+    final navRoutes = ['/dashboard', '/kasir', '/riwayat'];
+    const selectedIndex = 0;
 
     return Container(
-      margin: const EdgeInsets.only(left: 20, right: 20, top: 12),
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+      margin: EdgeInsets.only(left: r.space(20), right: r.space(20), top: r.space(12)),
+      padding: EdgeInsets.symmetric(horizontal: r.space(8), vertical: r.space(6)),
       decoration: BoxDecoration(
         color: const Color(0xFFBDB76B),
         borderRadius: BorderRadius.circular(14),
@@ -263,7 +190,7 @@ class _DashboardState extends State<Dashboard> {
         children: List.generate(navItems.length, (index) {
           final isSelected = index == selectedIndex;
           return Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 4),
+            padding: EdgeInsets.symmetric(horizontal: r.space(4)),
             child: InkWell(
               onTap: () {
                 if (!isSelected) {
@@ -272,7 +199,7 @@ class _DashboardState extends State<Dashboard> {
               },
               borderRadius: BorderRadius.circular(10),
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                padding: EdgeInsets.symmetric(horizontal: r.space(20), vertical: r.space(10)),
                 decoration: BoxDecoration(
                   color: isSelected ? const Color(0xFFFFFEE4).withOpacity(0.25) : Colors.transparent,
                   borderRadius: BorderRadius.circular(10),
@@ -281,7 +208,7 @@ class _DashboardState extends State<Dashboard> {
                   navItems[index],
                   style: TextStyle(
                     color: isSelected ? const Color(0xFFFFFEE4) : Colors.black87,
-                    fontSize: 16,
+                    fontSize: r.font(16),
                     fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
                     fontFamily: 'Inter',
                   ),
@@ -297,7 +224,7 @@ class _DashboardState extends State<Dashboard> {
   // ────────────────────────────────────────
   //  SEARCH BAR
   // ────────────────────────────────────────
-  Widget _buildSearchBar() {
+  Widget _buildSearchBar(Responsive r) {
     return Row(
       children: [
         Expanded(
@@ -309,32 +236,32 @@ class _DashboardState extends State<Dashboard> {
             ),
             child: TextField(
               onChanged: (value) => setState(() => _searchQuery = value),
-              style: const TextStyle(fontSize: 16, fontFamily: 'Inter'),
-              decoration: const InputDecoration(
+              style: TextStyle(fontSize: r.font(16), fontFamily: 'Inter'),
+              decoration: InputDecoration(
                 hintText: 'cari produk',
-                hintStyle: TextStyle(color: Color(0xFF696969), fontSize: 16),
-                prefixIcon: Icon(Icons.search, color: Color(0xFF696969)),
+                hintStyle: TextStyle(color: const Color(0xFF696969), fontSize: r.font(16)),
+                prefixIcon: Icon(Icons.search, color: const Color(0xFF696969), size: r.icon(24)),
                 border: InputBorder.none,
-                contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                contentPadding: EdgeInsets.symmetric(horizontal: r.space(16), vertical: r.space(12)),
               ),
             ),
           ),
         ),
-        const SizedBox(width: 10),
+        SizedBox(width: r.space(10)),
         InkWell(
           onTap: () {},
           borderRadius: BorderRadius.circular(10),
           child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 12),
+            padding: EdgeInsets.symmetric(horizontal: r.space(22), vertical: r.space(12)),
             decoration: BoxDecoration(
               color: const Color(0xFFCE8947),
               borderRadius: BorderRadius.circular(10),
             ),
-            child: const Text(
+            child: Text(
               'cari',
               style: TextStyle(
                 color: Colors.white,
-                fontSize: 16,
+                fontSize: r.font(16),
                 fontWeight: FontWeight.w500,
                 fontFamily: 'Inter',
               ),
@@ -348,17 +275,16 @@ class _DashboardState extends State<Dashboard> {
   // ────────────────────────────────────────
   //  CATEGORY FILTERS
   // ────────────────────────────────────────
-  Widget _buildCategoryFilters() {
+  Widget _buildCategoryFilters(Responsive r) {
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       child: Row(
         children: [
-          // Filter icon button
           InkWell(
             onTap: () => setState(() => _selectedCategory = 'Semua'),
             borderRadius: BorderRadius.circular(10),
             child: Container(
-              padding: const EdgeInsets.all(10),
+              padding: EdgeInsets.all(r.space(10)),
               decoration: BoxDecoration(
                 color: _selectedCategory == 'Semua'
                     ? const Color(0xFFCE8947)
@@ -367,23 +293,22 @@ class _DashboardState extends State<Dashboard> {
               ),
               child: Image.asset(
                 'assets/icons/Conversion.png',
-                width: 24,
-                height: 24,
+                width: r.icon(24),
+                height: r.icon(24),
                 color: const Color(0xFFFFFEE4),
               ),
             ),
           ),
-          const SizedBox(width: 10),
-          // Category pills
+          SizedBox(width: r.space(10)),
           ..._categories.map((cat) {
             final isSelected = _selectedCategory == cat['name'];
             return Padding(
-              padding: const EdgeInsets.only(right: 10),
+              padding: EdgeInsets.only(right: r.space(10)),
               child: InkWell(
                 onTap: () => setState(() => _selectedCategory = cat['name']),
                 borderRadius: BorderRadius.circular(10),
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  padding: EdgeInsets.symmetric(horizontal: r.space(16), vertical: r.space(10)),
                   decoration: BoxDecoration(
                     color: isSelected
                         ? const Color(0xFFCE8947)
@@ -395,17 +320,17 @@ class _DashboardState extends State<Dashboard> {
                     children: [
                       Text(
                         cat['name'],
-                        style: const TextStyle(
-                          color: Color(0xFFFFFEE4),
-                          fontSize: 14,
+                        style: TextStyle(
+                          color: const Color(0xFFFFFEE4),
+                          fontSize: r.font(14),
                           fontFamily: 'Inter',
                         ),
                       ),
-                      const SizedBox(width: 8),
+                      SizedBox(width: r.space(8)),
                       Image.asset(
                         cat['icon'],
-                        width: 20,
-                        height: 20,
+                        width: r.icon(20),
+                        height: r.icon(20),
                         color: const Color(0xFFFFFEE4),
                       ),
                     ],
@@ -422,23 +347,32 @@ class _DashboardState extends State<Dashboard> {
   // ────────────────────────────────────────
   //  PRODUCT GRID
   // ────────────────────────────────────────
-  Widget _buildProductGrid() {
+  Widget _buildProductGrid(Responsive r) {
     final products = _filteredProducts;
 
-    return GridView.builder(
-      padding: const EdgeInsets.only(bottom: 20),
-      gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-        maxCrossAxisExtent: 200,
-        mainAxisSpacing: 16,
-        crossAxisSpacing: 16,
-        childAspectRatio: 0.72,
-      ),
-      itemCount: products.length,
-      itemBuilder: (context, index) => _buildProductCard(products[index]),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final columns = r.gridColumns;
+        final spacing = r.space(16);
+        final itemWidth = (constraints.maxWidth - spacing * (columns - 1)) / columns;
+        final itemHeight = itemWidth / 0.72;
+
+        return GridView.builder(
+          padding: EdgeInsets.only(bottom: r.space(20)),
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: columns,
+            mainAxisSpacing: spacing,
+            crossAxisSpacing: spacing,
+            childAspectRatio: itemWidth / itemHeight,
+          ),
+          itemCount: products.length,
+          itemBuilder: (context, index) => _buildProductCard(products[index], r),
+        );
+      },
     );
   }
 
-  Widget _buildProductCard(Map<String, dynamic> product) {
+  Widget _buildProductCard(Map<String, dynamic> product, Responsive r) {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -458,27 +392,25 @@ class _DashboardState extends State<Dashboard> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const SizedBox(height: 10),
-          // Product image
+          SizedBox(height: r.space(10)),
           Expanded(
             flex: 3,
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
+              padding: EdgeInsets.symmetric(horizontal: r.space(16)),
               child: Image.asset(
                 product['image'],
                 fit: BoxFit.contain,
               ),
             ),
           ),
-          const SizedBox(height: 6),
-          // Product name
+          SizedBox(height: r.space(6)),
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8),
+            padding: EdgeInsets.symmetric(horizontal: r.space(8)),
             child: Text(
               product['name'],
-              style: const TextStyle(
+              style: TextStyle(
                 color: Colors.black,
-                fontSize: 13,
+                fontSize: r.font(13),
                 fontWeight: FontWeight.bold,
                 fontFamily: 'Inter',
               ),
@@ -487,29 +419,26 @@ class _DashboardState extends State<Dashboard> {
               overflow: TextOverflow.ellipsis,
             ),
           ),
-          const SizedBox(height: 2),
-          // Price
+          SizedBox(height: r.space(2)),
           Text(
             _formatPrice(product['price']),
-            style: const TextStyle(
-              color: Color(0xFF1D1B1B),
-              fontSize: 12,
+            style: TextStyle(
+              color: const Color(0xFF1D1B1B),
+              fontSize: r.font(12),
               fontFamily: 'Inter',
             ),
           ),
-          // Stock
           Text(
             'Stok: ${product['stock']}',
-            style: const TextStyle(
-              color: Color(0xFF1D1B1B),
-              fontSize: 12,
+            style: TextStyle(
+              color: const Color(0xFF1D1B1B),
+              fontSize: r.font(12),
               fontFamily: 'Inter',
             ),
           ),
-          const SizedBox(height: 6),
-          // Add button
+          SizedBox(height: r.space(6)),
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
+            padding: EdgeInsets.symmetric(horizontal: r.space(16)),
             child: SizedBox(
               width: double.infinity,
               child: ElevatedButton(
@@ -520,17 +449,17 @@ class _DashboardState extends State<Dashboard> {
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(20),
                   ),
-                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  padding: EdgeInsets.symmetric(vertical: r.space(8)),
                   elevation: 0,
                 ),
-                child: const Text(
+                child: Text(
                   'Tambah',
-                  style: TextStyle(fontSize: 12, fontFamily: 'Inter'),
+                  style: TextStyle(fontSize: r.font(12), fontFamily: 'Inter'),
                 ),
               ),
             ),
           ),
-          const SizedBox(height: 10),
+          SizedBox(height: r.space(10)),
         ],
       ),
     );

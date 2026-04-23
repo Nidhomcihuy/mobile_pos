@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'screens/dashboard.dart';
 import 'screens/kasir.dart';
 import 'screens/riwayat.dart';
-import 'screens/stok.dart';
 import 'screens/detail.dart';
 
 void main() {
@@ -24,10 +23,9 @@ class MyApp extends StatelessWidget {
       initialRoute: '/dashboard',
       routes: {
         '/dashboard': (context) => const Dashboard(),
-        '/kasir': (context) => Kasir(),
-        '/riwayat': (context) => Riwayat(),
-        '/stok': (context) => Stok(),
-        '/detail': (context) => Detail(),
+        '/kasir': (context) => const Kasir(),
+        '/riwayat': (context) => const Riwayat(),
+        '/detail': (context) => const Detail(),
       },
     );
   }
