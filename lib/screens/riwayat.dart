@@ -4,9 +4,88 @@ import '../utils/responsive_helper.dart';
 class Riwayat extends StatelessWidget {
   const Riwayat({super.key});
 
+  String _formatPrice(int price) {
+    String priceStr = price.toString();
+    String result = '';
+    int count = 0;
+    for (int i = priceStr.length - 1; i >= 0; i--) {
+      result = priceStr[i] + result;
+      count++;
+      if (count % 3 == 0 && i != 0) {
+        result = '.$result';
+      }
+    }
+    return 'Rp $result';
+  }
+
+  // Fungsi untuk menampilkan Dialog Detail
+  void _showTransactionDetail(BuildContext context, Map<String, dynamic> data, Responsive r) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Row(
+          children: [
+            const Icon(Icons.receipt_long, color: Color(0xFFCE8947)),
+            const SizedBox(width: 10),
+            Text('Detail Transaksi ${data['id']}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _detailRow('Waktu', '${data['tanggal']} | ${data['jam']}'),
+            _detailRow('Metode', data['metode']),
+            const Divider(height: 30),
+            const Text('Daftar Produk:', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey)),
+            const SizedBox(height: 8),
+            Text(data['items'], style: const TextStyle(fontSize: 16)),
+            const Divider(height: 30),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text('TOTAL BAYAR', style: TextStyle(fontWeight: FontWeight.bold)),
+                Text(_formatPrice(data['total']), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Color(0xFFCE8947))),
+              ],
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('TUTUP', style: TextStyle(color: Color(0xFFCE8947), fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _detailRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(label, style: const TextStyle(color: Colors.grey)),
+          Text(value, style: const TextStyle(fontWeight: FontWeight.w600)),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final r = Responsive.of(context);
+
+    // Mock Data
+    final List<Map<String, dynamic>> riwayatData = [
+      {'id': '#123', 'tanggal': '30/02/2026', 'jam': '14:20', 'total': 10500, 'metode': 'CASH', 'items': 'Indomie Soto (2), Teh Pucuk (1)'},
+      {'id': '#122', 'tanggal': '30/02/2026', 'jam': '13:45', 'total': 78000, 'metode': 'QRIS', 'items': 'Beras Maknyuss 5kg (1)'},
+      {'id': '#121', 'tanggal': '30/02/2026', 'jam': '10:15', 'total': 25000, 'metode': 'CASH', 'items': 'Sari Roti (1), Aqua (1), Oreo (1)'},
+    ];
+
+    int totalPemasukan = riwayatData.fold(0, (sum, item) => sum + (item['total'] as int));
 
     return Scaffold(
       backgroundColor: const Color(0xFFFFFDE3),
@@ -15,197 +94,143 @@ class Riwayat extends StatelessWidget {
         children: [
           _buildHeader(r),
           _buildNavBar(context, r),
-          // Title
           Padding(
-            padding: EdgeInsets.only(left: r.space(24), top: r.space(16), bottom: r.space(16)),
-            child: Text(
-              'Riwayat Transaksi',
-              style: TextStyle(
-                fontSize: r.font(22),
-                fontWeight: FontWeight.w500,
-                fontFamily: 'Inter',
-                color: const Color(0xFF555555),
-              ),
-            ),
+            padding: EdgeInsets.fromLTRB(r.space(24), r.space(16), r.space(24), r.space(8)),
+            child: Text('Riwayat Transaksi', style: TextStyle(fontSize: r.font(22), fontWeight: FontWeight.w800, color: const Color(0xFF555555))),
           ),
-          // Stats cards
+          
+          // Statistik Section
           Padding(
             padding: EdgeInsets.symmetric(horizontal: r.space(24)),
-            child: Row(
+            child: Column(
               children: [
-                _buildStatCard('Total Transaksi', '55', 'hari ini', r),
-                SizedBox(width: r.space(16)),
-                _buildStatCard('Total Transaksi', '333', 'Minggu ini', r),
-                SizedBox(width: r.space(16)),
-                _buildStatCard('Total Transaksi', '1500', 'Bulan ini', r),
+                _buildStatCard('TOTAL PEMASUKAN HARI INI', _formatPrice(totalPemasukan), 'Berdasarkan data hari ini', r, isHighlight: true),
+                SizedBox(height: r.space(12)),
+                Row(
+                  children: [
+                    _buildStatCard('Transaksi', '12', 'Hari Ini', r),
+                    SizedBox(width: r.space(12)),
+                    _buildStatCard('Transaksi', '85', 'Minggu Ini', r),
+                    SizedBox(width: r.space(12)),
+                    _buildStatCard('Transaksi', '342', 'Bulan Ini', r),
+                  ],
+                ),
               ],
             ),
           ),
-          // Transaction list (empty state)
+          SizedBox(height: r.space(20)),
+
+          // Table Section
           Expanded(
-            child: Center(
-              child: Text(
-                'Belum ada transaksi hari ini',
-                style: TextStyle(
-                  fontSize: r.font(16),
-                  color: Colors.grey[400],
-                  fontFamily: 'Inter',
+            child: Container(
+              width: double.infinity,
+              margin: EdgeInsets.symmetric(horizontal: r.space(24)),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(15),
+                border: Border.all(color: const Color(0xFFD6D2A0)),
+                boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10)],
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(15),
+                child: SingleChildScrollView(
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: DataTable(
+                      headingRowColor: MaterialStateProperty.all(const Color(0xFFBDB76B).withOpacity(0.2)),
+                      columnSpacing: r.space(35),
+                      columns: const [
+                        DataColumn(label: Text('ID', style: TextStyle(fontWeight: FontWeight.bold))),
+                        DataColumn(label: Text('WAKTU', style: TextStyle(fontWeight: FontWeight.bold))),
+                        DataColumn(label: Text('METODE', style: TextStyle(fontWeight: FontWeight.bold))),
+                        DataColumn(label: Text('TOTAL', style: TextStyle(fontWeight: FontWeight.bold))),
+                        DataColumn(label: Text('AKSI', style: TextStyle(fontWeight: FontWeight.bold))),
+                      ],
+                      rows: riwayatData.map((data) {
+                        return DataRow(cells: [
+                          DataCell(Text(data['id'])),
+                          DataCell(Text(data['jam'])),
+                          DataCell(Text(data['metode'], style: TextStyle(color: data['metode'] == 'QRIS' ? Colors.blue : Colors.green, fontWeight: FontWeight.bold))),
+                          DataCell(Text(_formatPrice(data['total']), style: const TextStyle(fontWeight: FontWeight.bold))),
+                          DataCell(
+                            IconButton(
+                              icon: const Icon(Icons.visibility, color: Color(0xFFCE8947)),
+                              onPressed: () => _showTransactionDetail(context, data, r),
+                            ),
+                          ),
+                        ]);
+                      }).toList(),
+                    ),
+                  ),
                 ),
               ),
             ),
           ),
+          SizedBox(height: r.space(20)),
         ],
       ),
     );
   }
 
-  Widget _buildStatCard(String title, String value, String period, Responsive r) {
+  Widget _buildStatCard(String title, String value, String period, Responsive r, {bool isHighlight = false}) {
     return Expanded(
+      flex: isHighlight ? 0 : 1,
       child: Container(
-        padding: EdgeInsets.symmetric(vertical: r.space(20), horizontal: r.space(16)),
+        width: isHighlight ? double.infinity : null,
+        padding: EdgeInsets.symmetric(vertical: r.space(14), horizontal: r.space(16)),
         decoration: BoxDecoration(
-          color: const Color(0xFFFFFDE3),
+          color: isHighlight ? const Color(0xFFCE8947) : Colors.white,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: const Color(0xFFD6D2A0), width: 2),
+          border: Border.all(color: isHighlight ? Colors.transparent : const Color(0xFFD6D2A0)),
         ),
         child: Column(
           children: [
-            Text(
-              title,
-              style: TextStyle(
-                fontSize: r.font(16),
-                fontWeight: FontWeight.w700,
-                fontFamily: 'Inter',
-              ),
-              textAlign: TextAlign.center,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-            SizedBox(height: r.space(8)),
-            FittedBox(
-              fit: BoxFit.scaleDown,
-              child: Text(
-                value,
-                style: TextStyle(
-                  fontSize: r.font(36),
-                  fontWeight: FontWeight.w700,
-                  fontFamily: 'Inter',
-                ),
-              ),
-            ),
-            SizedBox(height: r.space(4)),
-            Text(
-              period,
-              style: TextStyle(
-                fontSize: r.font(14),
-                fontFamily: 'Inter',
-                color: const Color(0xFF555555),
-              ),
-              textAlign: TextAlign.center,
-            ),
+            Text(title, style: TextStyle(fontSize: r.font(10), fontWeight: FontWeight.bold, color: isHighlight ? Colors.white70 : Colors.grey)),
+            const SizedBox(height: 4),
+            FittedBox(child: Text(value, style: TextStyle(fontSize: r.font(isHighlight ? 24 : 18), fontWeight: FontWeight.w900, color: isHighlight ? Colors.white : Colors.black))),
+            Text(period, style: TextStyle(fontSize: r.font(9), color: isHighlight ? Colors.white60 : Colors.black45)),
           ],
         ),
       ),
     );
   }
 
-  // ────────────────────────────────────────
-  //  HEADER
-  // ────────────────────────────────────────
   Widget _buildHeader(Responsive r) {
     return Container(
       width: double.infinity,
       padding: EdgeInsets.symmetric(horizontal: r.space(20), vertical: r.space(14)),
-      decoration: const BoxDecoration(
-        color: Color(0xFFBDB76B),
-        borderRadius: BorderRadius.only(
-          bottomLeft: Radius.circular(24),
-          bottomRight: Radius.circular(24),
-        ),
-      ),
+      decoration: const BoxDecoration(color: Color(0xFFBDB76B), borderRadius: BorderRadius.only(bottomLeft: Radius.circular(24), bottomRight: Radius.circular(24))),
       child: SafeArea(
         bottom: false,
         child: Row(
           children: [
-            Container(
-              width: r.icon(48),
-              height: r.icon(48),
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.2),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Icon(Icons.store, color: Colors.white, size: r.icon(28)),
-            ),
+            const Icon(Icons.store, color: Colors.white, size: 28),
             SizedBox(width: r.space(12)),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('POS TOSERBA',
-                      style: TextStyle(color: const Color(0xFFFFFEE4), fontSize: r.font(22), fontWeight: FontWeight.w800, fontFamily: 'Inter')),
-                  Text('jl. indah no.15, Sidoarjo',
-                      style: TextStyle(color: const Color(0xFFFFFEE4), fontSize: r.font(14), fontFamily: 'Inter'),
-                      overflow: TextOverflow.ellipsis),
-                ],
-              ),
-            ),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Text('Kasir: Dewi',
-                    style: TextStyle(color: const Color(0xFFFFFEE4), fontSize: r.font(18), fontWeight: FontWeight.w800, fontFamily: 'Inter')),
-                Text('30/02/2026',
-                    style: TextStyle(color: const Color(0xFFFFFEE4), fontSize: r.font(14), fontFamily: 'Inter')),
-              ],
-            ),
+            Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [const Text('POS TOSERBA', style: TextStyle(color: Color(0xFFFFFEE4), fontWeight: FontWeight.w800)), const Text('jl. indah no.15, Sidoarjo', style: TextStyle(color: Color(0xFFFFFEE4)))]))
           ],
         ),
       ),
     );
   }
 
-  // ────────────────────────────────────────
-  //  NAVIGATION BAR
-  // ────────────────────────────────────────
   Widget _buildNavBar(BuildContext context, Responsive r) {
     final navItems = ['Dashboard', 'Kasir', 'Riwayat'];
-    final navRoutes = ['/dashboard', '/kasir', '/riwayat'];
     const selectedIndex = 2;
-
     return Container(
       margin: EdgeInsets.only(left: r.space(20), right: r.space(20), top: r.space(12)),
-      padding: EdgeInsets.symmetric(horizontal: r.space(8), vertical: r.space(6)),
-      decoration: BoxDecoration(
-        color: const Color(0xFFBDB76B),
-        borderRadius: BorderRadius.circular(14),
-      ),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+      decoration: BoxDecoration(color: const Color(0xFFBDB76B), borderRadius: BorderRadius.circular(14)),
       child: Row(
         children: List.generate(navItems.length, (index) {
           final isSelected = index == selectedIndex;
-          return Padding(
-            padding: EdgeInsets.symmetric(horizontal: r.space(4)),
+          return Expanded(
             child: InkWell(
-              onTap: () {
-                if (!isSelected) {
-                  Navigator.pushReplacementNamed(context, navRoutes[index]);
-                }
-              },
-              borderRadius: BorderRadius.circular(10),
+              onTap: () { if (!isSelected) Navigator.pushReplacementNamed(context, '/${navItems[index].toLowerCase()}'); },
               child: Container(
-                padding: EdgeInsets.symmetric(horizontal: r.space(20), vertical: r.space(10)),
-                decoration: BoxDecoration(
-                  color: isSelected ? const Color(0xFFFFFEE4).withOpacity(0.25) : Colors.transparent,
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Text(
-                  navItems[index],
-                  style: TextStyle(
-                    color: isSelected ? const Color(0xFFFFFEE4) : Colors.black87,
-                    fontSize: r.font(16),
-                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-                    fontFamily: 'Inter',
-                  ),
-                ),
+                alignment: Alignment.center,
+                padding: const EdgeInsets.symmetric(vertical: 10),
+                decoration: BoxDecoration(color: isSelected ? const Color(0xFFFFFEE4).withOpacity(0.25) : Colors.transparent, borderRadius: BorderRadius.circular(10)),
+                child: Text(navItems[index], style: TextStyle(color: isSelected ? const Color(0xFFFFFEE4) : Colors.black87, fontSize: r.font(16), fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400)),
               ),
             ),
           );

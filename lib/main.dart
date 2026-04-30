@@ -3,6 +3,7 @@ import 'screens/dashboard.dart';
 import 'screens/kasir.dart';
 import 'screens/riwayat.dart';
 import 'screens/detail.dart';
+import 'screens/pembayaran.dart';
 
 void main() {
   runApp(const MyApp());
@@ -26,6 +27,7 @@ class MyApp extends StatelessWidget {
         '/kasir': (context) => const Kasir(),
         '/riwayat': (context) => const Riwayat(),
         '/detail': (context) => const Detail(),
+        '/pembayaran': (context) => const Pembayaran(),
       },
     );
   }
