@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../utils/responsive_helper.dart';
+import '../utils/api_service.dart';
 
 class Kasir extends StatefulWidget {
   const Kasir({super.key});
@@ -13,6 +14,10 @@ class _KasirState extends State<Kasir> {
   String _selectedCategory = 'Semua';
   final Map<String, Map<String, dynamic>> _cart = {};
 
+  List<Map<String, dynamic>> _products = [];
+  bool _isLoading = true;
+  String? _errorMessage;
+
   final List<Map<String, dynamic>> _categories = [
     {'name': 'Makanan', 'icon': 'assets/icons/Hamburger.png'},
     {'name': 'Minuman', 'icon': 'assets/icons/Soda.png'},
@@ -21,44 +26,30 @@ class _KasirState extends State<Kasir> {
     {'name': 'Sembako', 'icon': 'assets/icons/Grains Of Rice.png'},
   ];
 
-  final List<Map<String, dynamic>> _products = [
-    // Makanan
-    {'name': 'Indomie Soto', 'price': 3500, 'stock': 50, 'image': 'assets/images/indsoto.png', 'category': 'Makanan'},
-    {'name': 'Indomie Goreng', 'price': 3500, 'stock': 45, 'image': 'assets/images/indogoreng.png', 'category': 'Makanan'},
-    {'name': 'Kanzler Singles', 'price': 9000, 'stock': 20, 'image': 'assets/images/sosisknzlr.png', 'category': 'Makanan'},
-    {'name': 'Mie Sedap Cup', 'price': 5000, 'stock': 25, 'image': 'assets/images/sedapcup.png', 'category': 'Makanan'},
-    {'name': 'Pop Mie Ayam', 'price': 5500, 'stock': 30, 'image': 'assets/images/popmie.png', 'category': 'Makanan'},
-    {'name': 'Sosis So Nice', 'price': 1000, 'stock': 100, 'image': 'assets/images/sonicesosis.png', 'category': 'Makanan'},
-    
-    // Minuman
-    {'name': 'UHT Frisian Flag', 'price': 5500, 'stock': 40, 'image': 'assets/images/uhtfrisian.png', 'category': 'Minuman'},
-    {'name': 'UHT Cimory', 'price': 6000, 'stock': 35, 'image': 'assets/images/uhtcimory.png', 'category': 'Minuman'},
-    {'name': 'Cimory Yoghurt', 'price': 9500, 'stock': 15, 'image': 'assets/images/cimoryyoghurt.png', 'category': 'Minuman'},
-    {'name': 'Aqua 600ml', 'price': 3500, 'stock': 100, 'image': 'assets/images/aqua600.png', 'category': 'Minuman'},
-    {'name': 'Teh Pucuk Harum', 'price': 4000, 'stock': 60, 'image': 'assets/images/pucukharum.png', 'category': 'Minuman'},
-    {'name': 'Coca Cola 250ml', 'price': 5000, 'stock': 24, 'image': 'assets/images/cocacola.png', 'category': 'Minuman'},
-    {'name': 'Pocari Sweat', 'price': 7000, 'stock': 30, 'image': 'assets/images/pocari.png', 'category': 'Minuman'},
-    
-    // Snack
-    {'name': 'Sari Roti Sandwich', 'price': 5000, 'stock': 20, 'image': 'assets/images/sarirotisand.png', 'category': 'Snack'},
-    {'name': 'Chitato Sapi Panggang', 'price': 12000, 'stock': 15, 'image': 'assets/images/chitatosapi.png', 'category': 'Snack'},
-    {'name': 'Qtela Singkong', 'price': 8000, 'stock': 25, 'image': 'assets/images/qtela.png', 'category': 'Snack'},
-    {'name': 'Oreo Vanilla', 'price': 9000, 'stock': 30, 'image': 'assets/images/oreovnl.png', 'category': 'Snack'},
-    {'name': 'Silverqueen 62g', 'price': 15000, 'stock': 10, 'image': 'assets/images/silverqueen.png', 'category': 'Snack'},
-    {'name': 'Beng-Beng', 'price': 2500, 'stock': 50, 'image': 'assets/images/bengbeng.png', 'category': 'Snack'},
-    
-    // Obat
-    {'name': 'Panadol Extra', 'price': 12000, 'stock': 20, 'image': 'assets/images/panadolextra.png', 'category': 'Obat'},
-    {'name': 'Paramex', 'price': 3000, 'stock': 40, 'image': 'assets/images/paramex.png', 'category': 'Obat'},
-    {'name': 'Tolak Angin Cair', 'price': 4500, 'stock': 100, 'image': 'assets/images/tolakangin.png', 'category': 'Obat'},
-    {'name': 'Betadine 5ml', 'price': 18000, 'stock': 10, 'image': 'assets/images/btdn.png', 'category': 'Obat'},
+  @override
+  void initState() {
+    super.initState();
+    _loadProducts();
+  }
 
-    // Sembako
-    {'name': 'Beras Maknyuss 5kg', 'price': 78000, 'stock': 10, 'image': 'assets/images/berasmkys.png', 'category': 'Sembako'},
-    {'name': 'Gulaku 1kg', 'price': 18000, 'stock': 20, 'image': 'assets/images/gulaku.png', 'category': 'Sembako'},
-    {'name': 'Tepung Segitiga Biru', 'price': 12000, 'stock': 15, 'image': 'assets/images/tepungsb.png', 'category': 'Sembako'},
-    {'name': 'Minyak Goreng 2L', 'price': 35000, 'stock': 12, 'image': 'assets/images/minyak.png', 'category': 'Sembako'},
-  ];
+  Future<void> _loadProducts() async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+    try {
+      final data = await ApiService.fetchProducts();
+      setState(() {
+        _products = data;
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _errorMessage = e.toString();
+        _isLoading = false;
+      });
+    }
+  }
 
   String _formatPrice(int price) {
     String priceStr = price.toString();
@@ -77,10 +68,13 @@ class _KasirState extends State<Kasir> {
   List<Map<String, dynamic>> get _filteredProducts {
     return _products.where((product) {
       final matchCategory =
-          _selectedCategory == 'Semua' || product['category'] == _selectedCategory;
+          _selectedCategory == 'Semua' ||
+          product['category'] == _selectedCategory;
       final matchSearch =
           _searchQuery.isEmpty ||
-          (product['name'] as String).toLowerCase().contains(_searchQuery.toLowerCase());
+          (product['name'] as String).toLowerCase().contains(
+            _searchQuery.toLowerCase(),
+          );
       return matchCategory && matchSearch;
     }).toList();
   }
@@ -125,7 +119,7 @@ class _KasirState extends State<Kasir> {
               child: FloatingActionButton.extended(
                 onPressed: () {
                   Navigator.pushNamed(
-                    context, 
+                    context,
                     '/pembayaran',
                     arguments: _cart.values.toList(),
                   );
@@ -153,7 +147,10 @@ class _KasirState extends State<Kasir> {
   Widget _buildHeader(Responsive r) {
     return Container(
       width: double.infinity,
-      padding: EdgeInsets.symmetric(horizontal: r.space(20), vertical: r.space(14)),
+      padding: EdgeInsets.symmetric(
+        horizontal: r.space(20),
+        vertical: r.space(14),
+      ),
       decoration: const BoxDecoration(
         color: Color(0xFFBDB76B),
         borderRadius: BorderRadius.only(
@@ -237,8 +234,15 @@ class _KasirState extends State<Kasir> {
     const selectedIndex = 1;
 
     return Container(
-      margin: EdgeInsets.only(left: r.space(20), right: r.space(20), top: r.space(12)),
-      padding: EdgeInsets.symmetric(horizontal: r.space(8), vertical: r.space(6)),
+      margin: EdgeInsets.only(
+        left: r.space(20),
+        right: r.space(20),
+        top: r.space(12),
+      ),
+      padding: EdgeInsets.symmetric(
+        horizontal: r.space(8),
+        vertical: r.space(6),
+      ),
       decoration: BoxDecoration(
         color: const Color(0xFFBDB76B),
         borderRadius: BorderRadius.circular(14),
@@ -256,15 +260,22 @@ class _KasirState extends State<Kasir> {
               },
               borderRadius: BorderRadius.circular(10),
               child: Container(
-                padding: EdgeInsets.symmetric(horizontal: r.space(20), vertical: r.space(10)),
+                padding: EdgeInsets.symmetric(
+                  horizontal: r.space(20),
+                  vertical: r.space(10),
+                ),
                 decoration: BoxDecoration(
-                  color: isSelected ? const Color(0xFFFFFEE4).withOpacity(0.25) : Colors.transparent,
+                  color: isSelected
+                      ? const Color(0xFFFFFEE4).withOpacity(0.25)
+                      : Colors.transparent,
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Text(
                   navItems[index],
                   style: TextStyle(
-                    color: isSelected ? const Color(0xFFFFFEE4) : Colors.black87,
+                    color: isSelected
+                        ? const Color(0xFFFFFEE4)
+                        : Colors.black87,
                     fontSize: r.font(16),
                     fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
                     fontFamily: 'Inter',
@@ -296,10 +307,20 @@ class _KasirState extends State<Kasir> {
               style: TextStyle(fontSize: r.font(16), fontFamily: 'Inter'),
               decoration: InputDecoration(
                 hintText: 'cari produk',
-                hintStyle: TextStyle(color: const Color(0xFF696969), fontSize: r.font(16)),
-                prefixIcon: Icon(Icons.search, color: const Color(0xFF696969), size: r.icon(24)),
+                hintStyle: TextStyle(
+                  color: const Color(0xFF696969),
+                  fontSize: r.font(16),
+                ),
+                prefixIcon: Icon(
+                  Icons.search,
+                  color: const Color(0xFF696969),
+                  size: r.icon(24),
+                ),
                 border: InputBorder.none,
-                contentPadding: EdgeInsets.symmetric(horizontal: r.space(16), vertical: r.space(12)),
+                contentPadding: EdgeInsets.symmetric(
+                  horizontal: r.space(16),
+                  vertical: r.space(12),
+                ),
               ),
             ),
           ),
@@ -309,7 +330,10 @@ class _KasirState extends State<Kasir> {
           onTap: () {},
           borderRadius: BorderRadius.circular(10),
           child: Container(
-            padding: EdgeInsets.symmetric(horizontal: r.space(22), vertical: r.space(12)),
+            padding: EdgeInsets.symmetric(
+              horizontal: r.space(22),
+              vertical: r.space(12),
+            ),
             decoration: BoxDecoration(
               color: const Color(0xFFCE8947),
               borderRadius: BorderRadius.circular(10),
@@ -365,7 +389,10 @@ class _KasirState extends State<Kasir> {
                 onTap: () => setState(() => _selectedCategory = cat['name']),
                 borderRadius: BorderRadius.circular(10),
                 child: Container(
-                  padding: EdgeInsets.symmetric(horizontal: r.space(16), vertical: r.space(10)),
+                  padding: EdgeInsets.symmetric(
+                    horizontal: r.space(16),
+                    vertical: r.space(10),
+                  ),
                   decoration: BoxDecoration(
                     color: isSelected
                         ? const Color(0xFFCE8947)
@@ -405,13 +432,43 @@ class _KasirState extends State<Kasir> {
   //  PRODUCT GRID
   // ────────────────────────────────────────
   Widget _buildProductGrid(Responsive r) {
+    if (_isLoading) {
+      return const Center(
+        child: CircularProgressIndicator(color: Color(0xFFBDB76B)),
+      );
+    }
+    if (_errorMessage != null) {
+      return Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.wifi_off, size: 48, color: Colors.grey),
+            const SizedBox(height: 12),
+            Text('Gagal memuat produk', style: TextStyle(fontSize: r.font(16))),
+            const SizedBox(height: 8),
+            ElevatedButton(
+              onPressed: _loadProducts,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFFBDB76B),
+              ),
+              child: const Text(
+                'Coba Lagi',
+                style: TextStyle(color: Colors.white),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
     final products = _filteredProducts;
 
     return LayoutBuilder(
       builder: (context, constraints) {
         final columns = r.gridColumns;
         final spacing = r.space(16);
-        final itemWidth = (constraints.maxWidth - spacing * (columns - 1)) / columns;
+        final itemWidth =
+            (constraints.maxWidth - spacing * (columns - 1)) / columns;
         final itemHeight = itemWidth / 0.72;
 
         return GridView.builder(
@@ -423,7 +480,8 @@ class _KasirState extends State<Kasir> {
             childAspectRatio: itemWidth / itemHeight,
           ),
           itemCount: products.length,
-          itemBuilder: (context, index) => _buildProductCard(products[index], r),
+          itemBuilder: (context, index) =>
+              _buildProductCard(products[index], r),
         );
       },
     );
@@ -457,10 +515,24 @@ class _KasirState extends State<Kasir> {
             flex: 3,
             child: Padding(
               padding: EdgeInsets.symmetric(horizontal: r.space(16)),
-              child: Image.asset(
-                product['image'],
-                fit: BoxFit.contain,
-              ),
+              child: () {
+                final imageUrl = product['image_url'] as String?;
+                if (imageUrl != null && imageUrl.isNotEmpty) {
+                  return Image.network(
+                    imageUrl,
+                    fit: BoxFit.contain,
+                    errorBuilder: (_, __, ___) => const Icon(
+                      Icons.image_not_supported,
+                      color: Colors.grey,
+                    ),
+                  );
+                }
+                return const Icon(
+                  Icons.inventory_2,
+                  size: 48,
+                  color: Color(0xFFBDB76B),
+                );
+              }(),
             ),
           ),
           SizedBox(height: r.space(6)),
@@ -506,6 +578,7 @@ class _KasirState extends State<Kasir> {
                       onPressed: () {
                         setState(() {
                           _cart[productName] = {
+                            'id': product['id'],
                             'name': product['name'],
                             'price': product['price'],
                             'quantity': 1,
@@ -523,7 +596,10 @@ class _KasirState extends State<Kasir> {
                       ),
                       child: Text(
                         'Tambah',
-                        style: TextStyle(fontSize: r.font(12), fontFamily: 'Inter'),
+                        style: TextStyle(
+                          fontSize: r.font(12),
+                          fontFamily: 'Inter',
+                        ),
                       ),
                     ),
                   )
@@ -539,7 +615,11 @@ class _KasirState extends State<Kasir> {
                         IconButton(
                           constraints: const BoxConstraints(),
                           padding: EdgeInsets.zero,
-                          icon: const Icon(Icons.remove, color: Colors.white, size: 20),
+                          icon: const Icon(
+                            Icons.remove,
+                            color: Colors.white,
+                            size: 20,
+                          ),
                           onPressed: () {
                             setState(() {
                               if (_cart[productName]!['quantity'] > 1) {
@@ -562,10 +642,15 @@ class _KasirState extends State<Kasir> {
                         IconButton(
                           constraints: const BoxConstraints(),
                           padding: EdgeInsets.zero,
-                          icon: const Icon(Icons.add, color: Colors.white, size: 20),
+                          icon: const Icon(
+                            Icons.add,
+                            color: Colors.white,
+                            size: 20,
+                          ),
                           onPressed: () {
                             setState(() {
-                              if (_cart[productName]!['quantity'] < product['stock']) {
+                              if (_cart[productName]!['quantity'] <
+                                  product['stock']) {
                                 _cart[productName]!['quantity']++;
                               }
                             });
