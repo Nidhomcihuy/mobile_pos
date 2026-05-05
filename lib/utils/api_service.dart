@@ -3,8 +3,7 @@ import 'package:http/http.dart' as http;
 
 class ApiService {
   // Ganti dengan domain Niagahoster kamu
-  static const String _baseUrl =
-      'https://bukitshangrillaasri2.com/api/mobile';
+  static const String _baseUrl = 'https://bukitshangrillaasri2.com/api/mobile';
 
   // ─── Products ───────────────────────────────────────────────────────────────
 
@@ -30,6 +29,20 @@ class ApiService {
       return List<Map<String, dynamic>>.from(body['data']);
     }
     throw Exception('Gagal memuat kategori (${response.statusCode})');
+  }
+
+  // ─── Settings ────────────────────────────────────────────────────────────────
+
+  static Future<Map<String, String>> fetchSettings() async {
+    final response = await http
+        .get(Uri.parse('$_baseUrl/settings'))
+        .timeout(const Duration(seconds: 15));
+
+    if (response.statusCode == 200) {
+      final body = jsonDecode(response.body) as Map<String, dynamic>;
+      return body.map((k, v) => MapEntry(k, v?.toString() ?? ''));
+    }
+    throw Exception('Gagal memuat pengaturan (${response.statusCode})');
   }
 
   // ─── Transactions ────────────────────────────────────────────────────────────

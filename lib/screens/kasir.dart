@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../utils/responsive_helper.dart';
 import '../utils/api_service.dart';
+import '../utils/app_config.dart';
 
 class Kasir extends StatefulWidget {
   const Kasir({super.key});
@@ -175,7 +176,7 @@ class _KasirState extends State<Kasir> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'POS TOSERBA',
+                    AppConfig.storeName,
                     style: TextStyle(
                       color: const Color(0xFFFFFEE4),
                       fontSize: r.font(22),
@@ -184,7 +185,7 @@ class _KasirState extends State<Kasir> {
                     ),
                   ),
                   Text(
-                    'jl. indah no.15, Sidoarjo',
+                    AppConfig.storeAddress,
                     style: TextStyle(
                       color: const Color(0xFFFFFEE4),
                       fontSize: r.font(14),
@@ -199,7 +200,7 @@ class _KasirState extends State<Kasir> {
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 Text(
-                  'Kasir: Dewi',
+                  'Kasir: ${AppConfig.cashierName}',
                   style: TextStyle(
                     color: const Color(0xFFFFFEE4),
                     fontSize: r.font(18),
@@ -208,7 +209,7 @@ class _KasirState extends State<Kasir> {
                   ),
                 ),
                 Text(
-                  '30/02/2026',
+                  AppConfig.todayDate,
                   style: TextStyle(
                     color: const Color(0xFFFFFEE4),
                     fontSize: r.font(14),

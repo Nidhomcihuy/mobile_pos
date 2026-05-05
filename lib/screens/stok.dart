@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../utils/api_service.dart';
+import '../utils/app_config.dart';
 
 class Stok extends StatefulWidget {
   const Stok({super.key});
@@ -71,7 +72,9 @@ class _StokState extends State<Stok> {
   void _editStok(Map<String, dynamic> produk) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('Stok ${produk['name']} dikelola melalui menu Inbound di web admin.'),
+        content: Text(
+          'Stok ${produk['name']} dikelola melalui menu Inbound di web admin.',
+        ),
         duration: const Duration(seconds: 3),
       ),
     );
@@ -132,11 +135,11 @@ class _StokState extends State<Stok> {
               child: const Icon(Icons.store, color: Colors.white, size: 28),
             ),
             const SizedBox(width: 12),
-            const Column(
+            Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'POS TOSERBA',
+                  AppConfig.storeName,
                   style: TextStyle(
                     color: Color(0xFFFFFEE4),
                     fontSize: 22,
@@ -144,17 +147,17 @@ class _StokState extends State<Stok> {
                   ),
                 ),
                 Text(
-                  'jl. indah no.15, Sidoarjo',
+                  AppConfig.storeAddress,
                   style: TextStyle(color: Color(0xFFFFFEE4), fontSize: 14),
                 ),
               ],
             ),
             const Spacer(),
-            const Column(
+            Column(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 Text(
-                  'Kasir: Dewi',
+                  'Kasir: ${AppConfig.cashierName}',
                   style: TextStyle(
                     color: Color(0xFFFFFEE4),
                     fontSize: 18,
@@ -162,7 +165,7 @@ class _StokState extends State<Stok> {
                   ),
                 ),
                 Text(
-                  '22/04/2026',
+                  AppConfig.todayDate,
                   style: TextStyle(color: Color(0xFFFFFEE4), fontSize: 14),
                 ),
               ],
@@ -260,12 +263,20 @@ class _StokState extends State<Stok> {
           children: [
             const Icon(Icons.wifi_off, size: 48, color: Colors.grey),
             const SizedBox(height: 12),
-            const Text('Gagal memuat data stok', style: TextStyle(fontSize: 16, color: Colors.grey)),
+            const Text(
+              'Gagal memuat data stok',
+              style: TextStyle(fontSize: 16, color: Colors.grey),
+            ),
             const SizedBox(height: 8),
             ElevatedButton(
               onPressed: _loadProducts,
-              style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFBDB76B)),
-              child: const Text('Coba Lagi', style: TextStyle(color: Colors.white)),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFFBDB76B),
+              ),
+              child: const Text(
+                'Coba Lagi',
+                style: TextStyle(color: Colors.white),
+              ),
             ),
           ],
         ),
@@ -334,15 +345,24 @@ class _StokState extends State<Stok> {
               children: [
                 Text(
                   produk['name'],
-                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
                 Text(
                   produk['category'] ?? '-',
-                  style: const TextStyle(fontSize: 13, color: Color(0xFF696969)),
+                  style: const TextStyle(
+                    fontSize: 13,
+                    color: Color(0xFF696969),
+                  ),
                 ),
                 Text(
                   _formatHarga(produk['price'] as int),
-                  style: const TextStyle(fontSize: 13, color: Color(0xFF696969)),
+                  style: const TextStyle(
+                    fontSize: 13,
+                    color: Color(0xFF696969),
+                  ),
                 ),
               ],
             ),

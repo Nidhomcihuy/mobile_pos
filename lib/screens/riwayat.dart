@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../utils/responsive_helper.dart';
 import '../utils/api_service.dart';
+import '../utils/app_config.dart';
 
 class Riwayat extends StatefulWidget {
   const Riwayat({super.key});
@@ -508,15 +509,15 @@ class _RiwayatState extends State<Riwayat> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'POS TOSERBA',
+                  Text(
+                    AppConfig.storeName,
                     style: TextStyle(
                       color: Color(0xFFFFFEE4),
                       fontWeight: FontWeight.w800,
                     ),
                   ),
-                  const Text(
-                    'jl. indah no.15, Sidoarjo',
+                  Text(
+                    AppConfig.storeAddress,
                     style: TextStyle(color: Color(0xFFFFFEE4)),
                   ),
                 ],

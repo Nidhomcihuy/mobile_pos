@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../utils/responsive_helper.dart';
+import '../utils/app_config.dart';
 
 class Pembayaran extends StatefulWidget {
   const Pembayaran({super.key});
@@ -181,14 +182,7 @@ class _PembayaranState extends State<Pembayaran> {
           children: [
             const Icon(Icons.store, color: Colors.white, size: 28),
             SizedBox(width: r.space(12)),
-            Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [const Text('POS TOSERBA', style: TextStyle(color: Color(0xFFFFFEE4), fontWeight: FontWeight.w800)), const Text('jl. indah no.15, Sidoarjo', style: TextStyle(color: Color(0xFFFFFEE4)))]))
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildTitleBar(BuildContext context, Responsive r) {
+            Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(AppConfig.storeName, style: const TextStyle(color: Color(0xFFFFFEE4), fontWeight: FontWeight.w800)), Text(AppConfig.storeAddress, style: const TextStyle(color: Color(0xFFFFFEE4)))]))(BuildContext context, Responsive r) {
     return Container(
       width: double.infinity,
       padding: EdgeInsets.symmetric(horizontal: r.space(20), vertical: r.space(14)),

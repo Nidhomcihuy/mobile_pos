@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../utils/responsive_helper.dart';
 import '../utils/api_service.dart';
+import '../utils/app_config.dart';
 
 class Dashboard extends StatefulWidget {
   const Dashboard({super.key});
@@ -141,7 +142,7 @@ class _DashboardState extends State<Dashboard> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'POS TOSERBA',
+                    AppConfig.storeName,
                     style: TextStyle(
                       color: const Color(0xFFFFFEE4),
                       fontSize: r.font(22),
@@ -150,7 +151,7 @@ class _DashboardState extends State<Dashboard> {
                     ),
                   ),
                   Text(
-                    'jl. indah no.15, Sidoarjo',
+                    AppConfig.storeAddress,
                     style: TextStyle(
                       color: const Color(0xFFFFFEE4),
                       fontSize: r.font(14),
@@ -165,7 +166,7 @@ class _DashboardState extends State<Dashboard> {
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 Text(
-                  'Kasir: Dewi',
+                  'Kasir: ${AppConfig.cashierName}',
                   style: TextStyle(
                     color: const Color(0xFFFFFEE4),
                     fontSize: r.font(18),
@@ -174,7 +175,7 @@ class _DashboardState extends State<Dashboard> {
                   ),
                 ),
                 Text(
-                  '30/02/2026',
+                  AppConfig.todayDate,
                   style: TextStyle(
                     color: const Color(0xFFFFFEE4),
                     fontSize: r.font(14),
