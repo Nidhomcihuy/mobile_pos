@@ -1,8 +1,43 @@
 import 'package:flutter/material.dart';
 import '../utils/responsive_helper.dart';
+import '../utils/api_service.dart';
 
-class Riwayat extends StatelessWidget {
+class Riwayat extends StatefulWidget {
   const Riwayat({super.key});
+
+  @override
+  State<Riwayat> createState() => _RiwayatState();
+}
+
+class _RiwayatState extends State<Riwayat> {
+  List<Map<String, dynamic>> _transactions = [];
+  bool _isLoading = true;
+  String? _errorMessage;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadTransactions();
+  }
+
+  Future<void> _loadTransactions() async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+    try {
+      final data = await ApiService.fetchTransactions();
+      setState(() {
+        _transactions = data;
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _errorMessage = e.toString();
+        _isLoading = false;
+      });
+    }
+  }
 
   String _formatPrice(int price) {
     String priceStr = price.toString();
@@ -18,8 +53,21 @@ class Riwayat extends StatelessWidget {
     return 'Rp $result';
   }
 
+  String _todayString() {
+    final now = DateTime.now();
+    final d = now.day.toString().padLeft(2, '0');
+    final m = now.month.toString().padLeft(2, '0');
+    final y = now.year.toString();
+    return '$d/$m/$y';
+  }
+
   // Fungsi untuk menampilkan Dialog Detail
-  void _showTransactionDetail(BuildContext context, Map<String, dynamic> data, Responsive r) {
+  void _showTransactionDetail(
+    BuildContext context,
+    Map<String, dynamic> data,
+    Responsive r,
+  ) {
+    final items = data['items'] as List<dynamic>? ?? [];
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -28,33 +76,94 @@ class Riwayat extends StatelessWidget {
           children: [
             const Icon(Icons.receipt_long, color: Color(0xFFCE8947)),
             const SizedBox(width: 10),
-            Text('Detail Transaksi ${data['id']}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
-          ],
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _detailRow('Waktu', '${data['tanggal']} | ${data['jam']}'),
-            _detailRow('Metode', data['metode']),
-            const Divider(height: 30),
-            const Text('Daftar Produk:', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey)),
-            const SizedBox(height: 8),
-            Text(data['items'], style: const TextStyle(fontSize: 16)),
-            const Divider(height: 30),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text('TOTAL BAYAR', style: TextStyle(fontWeight: FontWeight.bold)),
-                Text(_formatPrice(data['total']), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Color(0xFFCE8947))),
-              ],
+            Expanded(
+              child: Text(
+                'Invoice ${data['invoice_number'] ?? data['id']}',
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                ),
+              ),
             ),
           ],
+        ),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _detailRow('Waktu', data['created_at'] ?? '-'),
+              _detailRow(
+                'Metode',
+                (data['payment_method'] ?? '-').toString().toUpperCase(),
+              ),
+              _detailRow(
+                'Status',
+                (data['status'] ?? '-').toString().toUpperCase(),
+              ),
+              const Divider(height: 30),
+              const Text(
+                'Daftar Produk:',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.grey,
+                ),
+              ),
+              const SizedBox(height: 8),
+              ...items.map((item) {
+                final i = item as Map<String, dynamic>;
+                return Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 2),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: Text('${i['product_name']} x${i['quantity']}'),
+                      ),
+                      Text(_formatPrice((i['subtotal'] as num).toInt())),
+                    ],
+                  ),
+                );
+              }),
+              const Divider(height: 30),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    'TOTAL BAYAR',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  Text(
+                    _formatPrice((data['total_amount'] as num).toInt()),
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 18,
+                      color: Color(0xFFCE8947),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 4),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text('Kembalian', style: TextStyle(color: Colors.grey)),
+                  Text(_formatPrice((data['change'] as num? ?? 0).toInt())),
+                ],
+              ),
+            ],
+          ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('TUTUP', style: TextStyle(color: Color(0xFFCE8947), fontWeight: FontWeight.bold)),
+            child: const Text(
+              'TUTUP',
+              style: TextStyle(
+                color: Color(0xFFCE8947),
+                fontWeight: FontWeight.bold,
+              ),
+            ),
           ),
         ],
       ),
@@ -78,14 +187,15 @@ class Riwayat extends StatelessWidget {
   Widget build(BuildContext context) {
     final r = Responsive.of(context);
 
-    // Mock Data
-    final List<Map<String, dynamic>> riwayatData = [
-      {'id': '#123', 'tanggal': '30/02/2026', 'jam': '14:20', 'total': 10500, 'metode': 'CASH', 'items': 'Indomie Soto (2), Teh Pucuk (1)'},
-      {'id': '#122', 'tanggal': '30/02/2026', 'jam': '13:45', 'total': 78000, 'metode': 'QRIS', 'items': 'Beras Maknyuss 5kg (1)'},
-      {'id': '#121', 'tanggal': '30/02/2026', 'jam': '10:15', 'total': 25000, 'metode': 'CASH', 'items': 'Sari Roti (1), Aqua (1), Oreo (1)'},
-    ];
-
-    int totalPemasukan = riwayatData.fold(0, (sum, item) => sum + (item['total'] as int));
+    final today = _todayString();
+    final todayTx = _transactions.where((t) {
+      final createdAt = (t['created_at'] ?? '') as String;
+      return createdAt.startsWith(today);
+    }).toList();
+    final totalPemasukanHariIni = todayTx.fold<int>(
+      0,
+      (sum, t) => sum + ((t['total_amount'] as num?)?.toInt() ?? 0),
+    );
 
     return Scaffold(
       backgroundColor: const Color(0xFFFFFDE3),
@@ -95,24 +205,63 @@ class Riwayat extends StatelessWidget {
           _buildHeader(r),
           _buildNavBar(context, r),
           Padding(
-            padding: EdgeInsets.fromLTRB(r.space(24), r.space(16), r.space(24), r.space(8)),
-            child: Text('Riwayat Transaksi', style: TextStyle(fontSize: r.font(22), fontWeight: FontWeight.w800, color: const Color(0xFF555555))),
+            padding: EdgeInsets.fromLTRB(
+              r.space(24),
+              r.space(16),
+              r.space(24),
+              r.space(8),
+            ),
+            child: Text(
+              'Riwayat Transaksi',
+              style: TextStyle(
+                fontSize: r.font(22),
+                fontWeight: FontWeight.w800,
+                color: const Color(0xFF555555),
+              ),
+            ),
           ),
-          
+
           // Statistik Section
           Padding(
             padding: EdgeInsets.symmetric(horizontal: r.space(24)),
             child: Column(
               children: [
-                _buildStatCard('TOTAL PEMASUKAN HARI INI', _formatPrice(totalPemasukan), 'Berdasarkan data hari ini', r, isHighlight: true),
+                _buildStatCard(
+                  'TOTAL PEMASUKAN HARI INI',
+                  _formatPrice(totalPemasukanHariIni),
+                  'Berdasarkan data hari ini',
+                  r,
+                  isHighlight: true,
+                ),
                 SizedBox(height: r.space(12)),
                 Row(
                   children: [
-                    _buildStatCard('Transaksi', '12', 'Hari Ini', r),
+                    _buildStatCard(
+                      'Transaksi',
+                      '${todayTx.length}',
+                      'Hari Ini',
+                      r,
+                    ),
                     SizedBox(width: r.space(12)),
-                    _buildStatCard('Transaksi', '85', 'Minggu Ini', r),
+                    _buildStatCard(
+                      'Transaksi',
+                      '${_transactions.length}',
+                      'Dimuat',
+                      r,
+                    ),
                     SizedBox(width: r.space(12)),
-                    _buildStatCard('Transaksi', '342', 'Bulan Ini', r),
+                    _buildStatCard(
+                      'Total',
+                      _formatPrice(
+                        _transactions.fold<int>(
+                          0,
+                          (s, t) =>
+                              s + ((t['total_amount'] as num?)?.toInt() ?? 0),
+                        ),
+                      ),
+                      'Semua',
+                      r,
+                    ),
                   ],
                 ),
               ],
@@ -129,41 +278,148 @@ class Riwayat extends StatelessWidget {
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(15),
                 border: Border.all(color: const Color(0xFFD6D2A0)),
-                boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10)],
-              ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(15),
-                child: SingleChildScrollView(
-                  child: SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: DataTable(
-                      headingRowColor: MaterialStateProperty.all(const Color(0xFFBDB76B).withOpacity(0.2)),
-                      columnSpacing: r.space(35),
-                      columns: const [
-                        DataColumn(label: Text('ID', style: TextStyle(fontWeight: FontWeight.bold))),
-                        DataColumn(label: Text('WAKTU', style: TextStyle(fontWeight: FontWeight.bold))),
-                        DataColumn(label: Text('METODE', style: TextStyle(fontWeight: FontWeight.bold))),
-                        DataColumn(label: Text('TOTAL', style: TextStyle(fontWeight: FontWeight.bold))),
-                        DataColumn(label: Text('AKSI', style: TextStyle(fontWeight: FontWeight.bold))),
-                      ],
-                      rows: riwayatData.map((data) {
-                        return DataRow(cells: [
-                          DataCell(Text(data['id'])),
-                          DataCell(Text(data['jam'])),
-                          DataCell(Text(data['metode'], style: TextStyle(color: data['metode'] == 'QRIS' ? Colors.blue : Colors.green, fontWeight: FontWeight.bold))),
-                          DataCell(Text(_formatPrice(data['total']), style: const TextStyle(fontWeight: FontWeight.bold))),
-                          DataCell(
-                            IconButton(
-                              icon: const Icon(Icons.visibility, color: Color(0xFFCE8947)),
-                              onPressed: () => _showTransactionDetail(context, data, r),
-                            ),
-                          ),
-                        ]);
-                      }).toList(),
-                    ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.05),
+                    blurRadius: 10,
                   ),
-                ),
+                ],
               ),
+              child: _isLoading
+                  ? const Center(
+                      child: CircularProgressIndicator(
+                        color: Color(0xFFBDB76B),
+                      ),
+                    )
+                  : _errorMessage != null
+                  ? Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Icon(
+                            Icons.error_outline,
+                            color: Colors.red,
+                            size: 48,
+                          ),
+                          const SizedBox(height: 8),
+                          Text(_errorMessage!, textAlign: TextAlign.center),
+                          const SizedBox(height: 12),
+                          ElevatedButton(
+                            onPressed: _loadTransactions,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFFBDB76B),
+                            ),
+                            child: const Text('Coba Lagi'),
+                          ),
+                        ],
+                      ),
+                    )
+                  : _transactions.isEmpty
+                  ? const Center(child: Text('Belum ada transaksi'))
+                  : ClipRRect(
+                      borderRadius: BorderRadius.circular(15),
+                      child: SingleChildScrollView(
+                        child: SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          child: DataTable(
+                            headingRowColor: WidgetStateProperty.all(
+                              const Color(0xFFBDB76B).withOpacity(0.2),
+                            ),
+                            columnSpacing: r.space(35),
+                            columns: const [
+                              DataColumn(
+                                label: Text(
+                                  'INVOICE',
+                                  style: TextStyle(fontWeight: FontWeight.bold),
+                                ),
+                              ),
+                              DataColumn(
+                                label: Text(
+                                  'WAKTU',
+                                  style: TextStyle(fontWeight: FontWeight.bold),
+                                ),
+                              ),
+                              DataColumn(
+                                label: Text(
+                                  'METODE',
+                                  style: TextStyle(fontWeight: FontWeight.bold),
+                                ),
+                              ),
+                              DataColumn(
+                                label: Text(
+                                  'TOTAL',
+                                  style: TextStyle(fontWeight: FontWeight.bold),
+                                ),
+                              ),
+                              DataColumn(
+                                label: Text(
+                                  'AKSI',
+                                  style: TextStyle(fontWeight: FontWeight.bold),
+                                ),
+                              ),
+                            ],
+                            rows: _transactions.map((data) {
+                              final method = (data['payment_method'] ?? '-')
+                                  .toString()
+                                  .toUpperCase();
+                              final isQris = method == 'QRIS';
+                              final createdAt =
+                                  (data['created_at'] ?? '') as String;
+                              final timePart = createdAt.contains(' ')
+                                  ? createdAt.split(' ').last
+                                  : createdAt;
+                              return DataRow(
+                                cells: [
+                                  DataCell(
+                                    Text(
+                                      (data['invoice_number'] ??
+                                              '#${data['id']}')
+                                          .toString(),
+                                      style: const TextStyle(fontSize: 12),
+                                    ),
+                                  ),
+                                  DataCell(Text(timePart)),
+                                  DataCell(
+                                    Text(
+                                      method,
+                                      style: TextStyle(
+                                        color: isQris
+                                            ? Colors.blue
+                                            : Colors.green,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                                  DataCell(
+                                    Text(
+                                      _formatPrice(
+                                        (data['total_amount'] as num).toInt(),
+                                      ),
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                                  DataCell(
+                                    IconButton(
+                                      icon: const Icon(
+                                        Icons.visibility,
+                                        color: Color(0xFFCE8947),
+                                      ),
+                                      onPressed: () => _showTransactionDetail(
+                                        context,
+                                        data,
+                                        r,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              );
+                            }).toList(),
+                          ),
+                        ),
+                      ),
+                    ),
             ),
           ),
           SizedBox(height: r.space(20)),
@@ -172,23 +428,56 @@ class Riwayat extends StatelessWidget {
     );
   }
 
-  Widget _buildStatCard(String title, String value, String period, Responsive r, {bool isHighlight = false}) {
+  Widget _buildStatCard(
+    String title,
+    String value,
+    String period,
+    Responsive r, {
+    bool isHighlight = false,
+  }) {
     return Expanded(
       flex: isHighlight ? 0 : 1,
       child: Container(
         width: isHighlight ? double.infinity : null,
-        padding: EdgeInsets.symmetric(vertical: r.space(14), horizontal: r.space(16)),
+        padding: EdgeInsets.symmetric(
+          vertical: r.space(14),
+          horizontal: r.space(16),
+        ),
         decoration: BoxDecoration(
           color: isHighlight ? const Color(0xFFCE8947) : Colors.white,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: isHighlight ? Colors.transparent : const Color(0xFFD6D2A0)),
+          border: Border.all(
+            color: isHighlight ? Colors.transparent : const Color(0xFFD6D2A0),
+          ),
         ),
         child: Column(
           children: [
-            Text(title, style: TextStyle(fontSize: r.font(10), fontWeight: FontWeight.bold, color: isHighlight ? Colors.white70 : Colors.grey)),
+            Text(
+              title,
+              style: TextStyle(
+                fontSize: r.font(10),
+                fontWeight: FontWeight.bold,
+                color: isHighlight ? Colors.white70 : Colors.grey,
+              ),
+            ),
             const SizedBox(height: 4),
-            FittedBox(child: Text(value, style: TextStyle(fontSize: r.font(isHighlight ? 24 : 18), fontWeight: FontWeight.w900, color: isHighlight ? Colors.white : Colors.black))),
-            Text(period, style: TextStyle(fontSize: r.font(9), color: isHighlight ? Colors.white60 : Colors.black45)),
+            FittedBox(
+              child: Text(
+                value,
+                style: TextStyle(
+                  fontSize: r.font(isHighlight ? 24 : 18),
+                  fontWeight: FontWeight.w900,
+                  color: isHighlight ? Colors.white : Colors.black,
+                ),
+              ),
+            ),
+            Text(
+              period,
+              style: TextStyle(
+                fontSize: r.font(9),
+                color: isHighlight ? Colors.white60 : Colors.black45,
+              ),
+            ),
           ],
         ),
       ),
@@ -198,15 +487,41 @@ class Riwayat extends StatelessWidget {
   Widget _buildHeader(Responsive r) {
     return Container(
       width: double.infinity,
-      padding: EdgeInsets.symmetric(horizontal: r.space(20), vertical: r.space(14)),
-      decoration: const BoxDecoration(color: Color(0xFFBDB76B), borderRadius: BorderRadius.only(bottomLeft: Radius.circular(24), bottomRight: Radius.circular(24))),
+      padding: EdgeInsets.symmetric(
+        horizontal: r.space(20),
+        vertical: r.space(14),
+      ),
+      decoration: const BoxDecoration(
+        color: Color(0xFFBDB76B),
+        borderRadius: BorderRadius.only(
+          bottomLeft: Radius.circular(24),
+          bottomRight: Radius.circular(24),
+        ),
+      ),
       child: SafeArea(
         bottom: false,
         child: Row(
           children: [
             const Icon(Icons.store, color: Colors.white, size: 28),
             SizedBox(width: r.space(12)),
-            Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [const Text('POS TOSERBA', style: TextStyle(color: Color(0xFFFFFEE4), fontWeight: FontWeight.w800)), const Text('jl. indah no.15, Sidoarjo', style: TextStyle(color: Color(0xFFFFFEE4)))]))
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'POS TOSERBA',
+                    style: TextStyle(
+                      color: Color(0xFFFFFEE4),
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  const Text(
+                    'jl. indah no.15, Sidoarjo',
+                    style: TextStyle(color: Color(0xFFFFFEE4)),
+                  ),
+                ],
+              ),
+            ),
           ],
         ),
       ),
@@ -217,20 +532,47 @@ class Riwayat extends StatelessWidget {
     final navItems = ['Dashboard', 'Kasir', 'Riwayat'];
     const selectedIndex = 2;
     return Container(
-      margin: EdgeInsets.only(left: r.space(20), right: r.space(20), top: r.space(12)),
+      margin: EdgeInsets.only(
+        left: r.space(20),
+        right: r.space(20),
+        top: r.space(12),
+      ),
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-      decoration: BoxDecoration(color: const Color(0xFFBDB76B), borderRadius: BorderRadius.circular(14)),
+      decoration: BoxDecoration(
+        color: const Color(0xFFBDB76B),
+        borderRadius: BorderRadius.circular(14),
+      ),
       child: Row(
         children: List.generate(navItems.length, (index) {
           final isSelected = index == selectedIndex;
           return Expanded(
             child: InkWell(
-              onTap: () { if (!isSelected) Navigator.pushReplacementNamed(context, '/${navItems[index].toLowerCase()}'); },
+              onTap: () {
+                if (!isSelected)
+                  Navigator.pushReplacementNamed(
+                    context,
+                    '/${navItems[index].toLowerCase()}',
+                  );
+              },
               child: Container(
                 alignment: Alignment.center,
                 padding: const EdgeInsets.symmetric(vertical: 10),
-                decoration: BoxDecoration(color: isSelected ? const Color(0xFFFFFEE4).withOpacity(0.25) : Colors.transparent, borderRadius: BorderRadius.circular(10)),
-                child: Text(navItems[index], style: TextStyle(color: isSelected ? const Color(0xFFFFFEE4) : Colors.black87, fontSize: r.font(16), fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400)),
+                decoration: BoxDecoration(
+                  color: isSelected
+                      ? const Color(0xFFFFFEE4).withOpacity(0.25)
+                      : Colors.transparent,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Text(
+                  navItems[index],
+                  style: TextStyle(
+                    color: isSelected
+                        ? const Color(0xFFFFFEE4)
+                        : Colors.black87,
+                    fontSize: r.font(16),
+                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                  ),
+                ),
               ),
             ),
           );
