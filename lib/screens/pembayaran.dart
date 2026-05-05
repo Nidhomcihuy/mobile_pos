@@ -176,6 +176,7 @@ class _PembayaranState extends State<Pembayaran> {
 
     return Scaffold(
       backgroundColor: const Color(0xFFFFFDE3),
+      resizeToAvoidBottomInset: false,
       body: Column(
         children: [
           _buildHeader(r),

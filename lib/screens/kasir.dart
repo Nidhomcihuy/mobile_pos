@@ -455,8 +455,10 @@ class _KasirState extends State<Kasir> {
   }
 
   Widget _buildProductCard(Map<String, dynamic> product, Responsive r) {
-    final String productName = product['name'];
-    final int quantity = _cart[productName]?['quantity'] ?? 0;
+    final String productName = (product['name'] ?? '').toString();
+    final int quantity = productName.isEmpty
+        ? 0
+        : (_cart[productName]?['quantity'] ?? 0);
 
     return Container(
       decoration: BoxDecoration(
