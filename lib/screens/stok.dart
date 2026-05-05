@@ -333,7 +333,7 @@ class _StokState extends State<Stok> {
                 ? Image.network(
                     imageUrl,
                     fit: BoxFit.contain,
-                    errorBuilder: (_, __, ___) =>
+                    errorBuilder: (_, _e, __) =>
                         const Icon(Icons.inventory_2, color: Color(0xFFBDB76B)),
                   )
                 : const Icon(Icons.inventory_2, color: Color(0xFFBDB76B)),

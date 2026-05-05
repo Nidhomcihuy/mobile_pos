@@ -281,7 +281,7 @@ class _RiwayatState extends State<Riwayat> {
                 border: Border.all(color: const Color(0xFFD6D2A0)),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
+                    color: Colors.black.withValues(alpha: 0.05),
                     blurRadius: 10,
                   ),
                 ],
@@ -324,7 +324,7 @@ class _RiwayatState extends State<Riwayat> {
                           scrollDirection: Axis.horizontal,
                           child: DataTable(
                             headingRowColor: WidgetStateProperty.all(
-                              const Color(0xFFBDB76B).withOpacity(0.2),
+                              const Color(0xFFBDB76B).withValues(alpha: 0.2),
                             ),
                             columnSpacing: r.space(35),
                             columns: const [
@@ -549,18 +549,19 @@ class _RiwayatState extends State<Riwayat> {
           return Expanded(
             child: InkWell(
               onTap: () {
-                if (!isSelected)
+                if (!isSelected) {
                   Navigator.pushReplacementNamed(
                     context,
                     '/${navItems[index].toLowerCase()}',
                   );
+                }
               },
               child: Container(
                 alignment: Alignment.center,
                 padding: const EdgeInsets.symmetric(vertical: 10),
                 decoration: BoxDecoration(
                   color: isSelected
-                      ? const Color(0xFFFFFEE4).withOpacity(0.25)
+                      ? const Color(0xFFFFFEE4).withValues(alpha: 0.25)
                       : Colors.transparent,
                   borderRadius: BorderRadius.circular(10),
                 ),

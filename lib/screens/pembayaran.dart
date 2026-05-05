@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../utils/responsive_helper.dart';
 import '../utils/app_config.dart';
+import '../utils/api_service.dart';
 
 class Pembayaran extends StatefulWidget {
   const Pembayaran({super.key});
@@ -14,6 +15,7 @@ class _PembayaranState extends State<Pembayaran> {
   int _change = 0;
   bool _isCashMode = false;
   bool _isQRMode = false;
+  bool _isProcessing = false;
 
   String _formatPrice(int price) {
     String priceStr = price.toString();
@@ -96,11 +98,54 @@ class _PembayaranState extends State<Pembayaran> {
     );
   }
 
+  Future<void> _processPayment(
+    List<Map<String, dynamic>> items,
+    int subtotal,
+    int cash,
+    Responsive r,
+  ) async {
+    setState(() => _isProcessing = true);
+
+    final apiItems = items
+        .map((item) => {'id': item['id'], 'qty': item['quantity'] as int})
+        .toList();
+
+    final paymentMethod = _isQRMode ? 'qris' : 'cash';
+
+    try {
+      final result = await ApiService.createTransaction(
+        items: apiItems,
+        paidAmount: cash,
+        paymentMethod: paymentMethod,
+      );
+      if (!mounted) return;
+      _showReceipt(
+        items,
+        result['total_amount'] as int? ?? subtotal,
+        result['paid_amount'] as int? ?? cash,
+        result['change'] as int? ?? (cash - subtotal),
+        result['invoice_number']?.toString() ?? '',
+        r,
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Gagal: ${e.toString().replaceAll('Exception: ', '')}'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _isProcessing = false);
+    }
+  }
+
   void _showReceipt(
     List<Map<String, dynamic>> items,
     int subtotal,
     int cash,
     int change,
+    String invoiceNumber,
     Responsive r,
   ) {
     showDialog(
@@ -109,6 +154,11 @@ class _PembayaranState extends State<Pembayaran> {
         content: SingleChildScrollView(
           child: Column(
             children: [
+              if (invoiceNumber.isNotEmpty)
+                Text(
+                  invoiceNumber,
+                  style: const TextStyle(fontSize: 12, color: Colors.grey),
+                ),
               const Text(
                 'STRUK PEMBAYARAN',
                 style: TextStyle(fontWeight: FontWeight.bold),
@@ -434,17 +484,30 @@ class _PembayaranState extends State<Pembayaran> {
                   onPressed: () {
                     if (!_isCashMode && !_isQRMode) {
                       _showPaymentOptions(subtotal, r);
-                    } else {
-                      int cash = int.tryParse(_cashController.text) ?? 0;
-                      _showReceipt(items, subtotal, cash, _change, r);
+                    } else if (!_isProcessing) {
+                      final cash =
+                          int.tryParse(
+                            _cashController.text.replaceAll('.', ''),
+                          ) ??
+                          0;
+                      _processPayment(items, subtotal, cash, r);
                     }
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFFD8B84B),
                   ),
-                  child: Text(
-                    _isCashMode || _isQRMode ? 'CETAK STRUK' : 'BAYAR',
-                  ),
+                  child: _isProcessing
+                      ? const SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        )
+                      : Text(
+                          _isCashMode || _isQRMode ? 'CETAK STRUK' : 'BAYAR',
+                        ),
                 ),
               ),
               SizedBox(width: 12),
