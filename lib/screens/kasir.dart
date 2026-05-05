@@ -18,29 +18,27 @@ class _KasirState extends State<Kasir> {
   bool _isLoading = true;
   String? _errorMessage;
 
-  final List<Map<String, dynamic>> _categories = [
-    {'name': 'Makanan', 'icon': 'assets/icons/Hamburger.png'},
-    {'name': 'Minuman', 'icon': 'assets/icons/Soda.png'},
-    {'name': 'Snack', 'icon': 'assets/icons/Doughnut.png'},
-    {'name': 'Obat', 'icon': 'assets/icons/Pill.png'},
-    {'name': 'Sembako', 'icon': 'assets/icons/Grains Of Rice.png'},
-  ];
+  List<String> _categories = [];
 
   @override
   void initState() {
     super.initState();
-    _loadProducts();
+    _loadData();
   }
 
-  Future<void> _loadProducts() async {
+  Future<void> _loadData() async {
     setState(() {
       _isLoading = true;
       _errorMessage = null;
     });
     try {
-      final data = await ApiService.fetchProducts();
+      final results = await Future.wait([
+        ApiService.fetchProducts(),
+        ApiService.fetchCategories(),
+      ]);
       setState(() {
-        _products = data;
+        _products = results[0];
+        _categories = results[1].map((c) => c['name'].toString()).toList();
         _isLoading = false;
       });
     } catch (e) {
@@ -357,73 +355,41 @@ class _KasirState extends State<Kasir> {
   //  CATEGORY FILTERS
   // ────────────────────────────────────────
   Widget _buildCategoryFilters(Responsive r) {
+    final allItems = ['Semua', ..._categories];
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       child: Row(
-        children: [
-          InkWell(
-            onTap: () => setState(() => _selectedCategory = 'Semua'),
-            borderRadius: BorderRadius.circular(10),
-            child: Container(
-              padding: EdgeInsets.all(r.space(10)),
-              decoration: BoxDecoration(
-                color: _selectedCategory == 'Semua'
-                    ? const Color(0xFFCE8947)
-                    : const Color(0xFFCE8947).withOpacity(0.6),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Image.asset(
-                'assets/icons/Conversion.png',
-                width: r.icon(24),
-                height: r.icon(24),
-                color: const Color(0xFFFFFEE4),
-              ),
-            ),
-          ),
-          SizedBox(width: r.space(10)),
-          ..._categories.map((cat) {
-            final isSelected = _selectedCategory == cat['name'];
-            return Padding(
-              padding: EdgeInsets.only(right: r.space(10)),
-              child: InkWell(
-                onTap: () => setState(() => _selectedCategory = cat['name']),
-                borderRadius: BorderRadius.circular(10),
-                child: Container(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: r.space(16),
-                    vertical: r.space(10),
-                  ),
-                  decoration: BoxDecoration(
-                    color: isSelected
-                        ? const Color(0xFFCE8947)
-                        : const Color(0xFFCE8947).withOpacity(0.6),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        cat['name'],
-                        style: TextStyle(
-                          color: const Color(0xFFFFFEE4),
-                          fontSize: r.font(14),
-                          fontFamily: 'Inter',
-                        ),
-                      ),
-                      SizedBox(width: r.space(8)),
-                      Image.asset(
-                        cat['icon'],
-                        width: r.icon(20),
-                        height: r.icon(20),
-                        color: const Color(0xFFFFFEE4),
-                      ),
-                    ],
+        children: allItems.map((name) {
+          final isSelected = _selectedCategory == name;
+          return Padding(
+            padding: EdgeInsets.only(right: r.space(10)),
+            child: InkWell(
+              onTap: () => setState(() => _selectedCategory = name),
+              borderRadius: BorderRadius.circular(10),
+              child: Container(
+                padding: EdgeInsets.symmetric(
+                  horizontal: r.space(16),
+                  vertical: r.space(10),
+                ),
+                decoration: BoxDecoration(
+                  color: isSelected
+                      ? const Color(0xFFCE8947)
+                      : const Color(0xFFCE8947).withOpacity(0.6),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Text(
+                  name,
+                  style: TextStyle(
+                    color: const Color(0xFFFFFEE4),
+                    fontSize: r.font(14),
+                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                    fontFamily: 'Inter',
                   ),
                 ),
               ),
-            );
-          }),
-        ],
+            ),
+          );
+        }).toList(),
       ),
     );
   }
@@ -447,7 +413,7 @@ class _KasirState extends State<Kasir> {
             Text('Gagal memuat produk', style: TextStyle(fontSize: r.font(16))),
             const SizedBox(height: 8),
             ElevatedButton(
-              onPressed: _loadProducts,
+              onPressed: _loadData,
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFFBDB76B),
               ),

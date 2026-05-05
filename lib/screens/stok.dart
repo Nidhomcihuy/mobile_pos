@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../utils/api_service.dart';
 
 class Stok extends StatefulWidget {
   const Stok({super.key});
@@ -9,66 +10,34 @@ class Stok extends StatefulWidget {
 
 class _StokState extends State<Stok> {
   String _cariProduk = '';
+  List<Map<String, dynamic>> _produkList = [];
+  bool _isLoading = true;
+  String? _errorMessage;
 
-  // data stok produk — nanti bisa diganti dari database
-  final List<Map<String, dynamic>> _produkList = [
-    {
-      'nama': 'Indomie all variant',
-      'kategori': 'Makanan',
-      'harga': 3500,
-      'stok': 402,
-      'maxStok': 500,
-      'icon': 'assets/icons/Hamburger.png',
-    },
-    {
-      'nama': 'Aqua',
-      'kategori': 'Minuman',
-      'harga': 3500,
-      'stok': 32,
-      'maxStok': 200,
-      'icon': 'assets/icons/Soda.png',
-    },
-    {
-      'nama': 'Paramex',
-      'kategori': 'Obat',
-      'harga': 3500,
-      'stok': 5,
-      'maxStok': 100,
-      'icon': 'assets/icons/Pill.png',
-    },
-    {
-      'nama': 'So Nice',
-      'kategori': 'Snack',
-      'harga': 3500,
-      'stok': 42,
-      'maxStok': 100,
-      'icon': 'assets/icons/Doughnut.png',
-    },
-    {
-      'nama': 'Beras Maknyuss',
-      'kategori': 'Sembako',
-      'harga': 78000,
-      'stok': 42,
-      'maxStok': 100,
-      'icon': 'assets/icons/Grains Of Rice.png',
-    },
-    {
-      'nama': 'Pocari Sweat',
-      'kategori': 'Minuman',
-      'harga': 7500,
-      'stok': 67,
-      'maxStok': 150,
-      'icon': 'assets/icons/Soda.png',
-    },
-    {
-      'nama': 'Gulaku',
-      'kategori': 'Sembako',
-      'harga': 18000,
-      'stok': 15,
-      'maxStok': 80,
-      'icon': 'assets/icons/Grains Of Rice.png',
-    },
-  ];
+  @override
+  void initState() {
+    super.initState();
+    _loadProducts();
+  }
+
+  Future<void> _loadProducts() async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+    try {
+      final data = await ApiService.fetchProducts();
+      setState(() {
+        _produkList = data;
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _errorMessage = e.toString();
+        _isLoading = false;
+      });
+    }
+  }
 
   String _formatHarga(int harga) {
     String s = harga.toString();
@@ -86,80 +55,24 @@ class _StokState extends State<Stok> {
     if (_cariProduk.isEmpty) return _produkList;
     return _produkList
         .where(
-          (p) => (p['nama'] as String).toLowerCase().contains(
+          (p) => (p['name'] as String).toLowerCase().contains(
             _cariProduk.toLowerCase(),
           ),
         )
         .toList();
   }
 
-  // warna progress bar berdasarkan level stok
-  Color _warnaStok(int stok, int maxStok) {
-    double persen = stok / maxStok;
-    if (persen > 0.4) return const Color(0xFF0ABE10); // hijau
-    if (persen > 0.15) return const Color(0xFFD8B84B); // kuning
-    return const Color(0xFFBE3A0A); // merah
+  Color _warnaStok(int stok, int minStok) {
+    if (stok == 0) return const Color(0xFFBE3A0A);
+    if (stok <= minStok) return const Color(0xFFD8B84B);
+    return const Color(0xFF0ABE10);
   }
 
-  void _editStok(int index) {
-    final produk = _produkList[index];
-    final controller = TextEditingController();
-
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Text('Edit Stok - ${produk['nama']}'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              'Stok sekarang: ${produk['stok']} pcs',
-              style: const TextStyle(fontSize: 14, color: Colors.grey),
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: controller,
-              keyboardType: TextInputType.number,
-              decoration: InputDecoration(
-                labelText: 'Jumlah stok baru',
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 14,
-                  vertical: 10,
-                ),
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Batal'),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFFD8B84B),
-            ),
-            onPressed: () {
-              final val = int.tryParse(controller.text);
-              if (val != null && val >= 0) {
-                setState(() => _produkList[index]['stok'] = val);
-                Navigator.pop(ctx);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(
-                      'Stok ${produk['nama']} diperbarui jadi $val pcs',
-                    ),
-                  ),
-                );
-              }
-            },
-            child: const Text('Simpan', style: TextStyle(color: Colors.white)),
-          ),
-        ],
+  void _editStok(Map<String, dynamic> produk) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Stok ${produk['name']} dikelola melalui menu Inbound di web admin.'),
+        duration: const Duration(seconds: 3),
       ),
     );
   }
@@ -334,8 +247,31 @@ class _StokState extends State<Stok> {
     );
   }
 
-  // ── LIST PRODUK ──
   Widget _buildListProduk() {
+    if (_isLoading) {
+      return const Center(
+        child: CircularProgressIndicator(color: Color(0xFFBDB76B)),
+      );
+    }
+    if (_errorMessage != null) {
+      return Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.wifi_off, size: 48, color: Colors.grey),
+            const SizedBox(height: 12),
+            const Text('Gagal memuat data stok', style: TextStyle(fontSize: 16, color: Colors.grey)),
+            const SizedBox(height: 8),
+            ElevatedButton(
+              onPressed: _loadProducts,
+              style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFBDB76B)),
+              child: const Text('Coba Lagi', style: TextStyle(color: Colors.white)),
+            ),
+          ],
+        ),
+      );
+    }
+
     final filtered = _produkFiltered;
 
     if (filtered.isEmpty) {
@@ -350,20 +286,16 @@ class _StokState extends State<Stok> {
     return ListView.builder(
       padding: const EdgeInsets.only(bottom: 20),
       itemCount: filtered.length,
-      itemBuilder: (context, index) {
-        // cari index asli di _produkList buat edit
-        final produk = filtered[index];
-        final indexAsli = _produkList.indexOf(produk);
-        return _buildItemProduk(produk, indexAsli);
-      },
+      itemBuilder: (context, index) => _buildItemProduk(filtered[index]),
     );
   }
 
-  Widget _buildItemProduk(Map<String, dynamic> produk, int indexAsli) {
-    final stok = produk['stok'] as int;
-    final maxStok = produk['maxStok'] as int;
-    final persen = (stok / maxStok).clamp(0.0, 1.0);
-    final warna = _warnaStok(stok, maxStok);
+  Widget _buildItemProduk(Map<String, dynamic> produk) {
+    final stok = produk['stock'] as int;
+    final minStok = produk['min_stock'] as int? ?? 20;
+    final persen = (stok / (minStok * 5)).clamp(0.0, 1.0);
+    final warna = _warnaStok(stok, minStok);
+    final imageUrl = produk['image_url'] as String?;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
@@ -378,52 +310,46 @@ class _StokState extends State<Stok> {
       ),
       child: Row(
         children: [
-          // gambar produk
           Container(
             width: 52,
             height: 52,
-            padding: const EdgeInsets.all(8),
+            padding: const EdgeInsets.all(6),
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(10),
             ),
-            child: Image.asset(produk['icon'], fit: BoxFit.contain),
+            child: imageUrl != null && imageUrl.isNotEmpty
+                ? Image.network(
+                    imageUrl,
+                    fit: BoxFit.contain,
+                    errorBuilder: (_, __, ___) =>
+                        const Icon(Icons.inventory_2, color: Color(0xFFBDB76B)),
+                  )
+                : const Icon(Icons.inventory_2, color: Color(0xFFBDB76B)),
           ),
           const SizedBox(width: 14),
-          // info produk
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  produk['nama'],
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
-                  ),
+                  produk['name'],
+                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
                 ),
                 Text(
-                  produk['kategori'],
-                  style: const TextStyle(
-                    fontSize: 13,
-                    color: Color(0xFF696969),
-                  ),
+                  produk['category'] ?? '-',
+                  style: const TextStyle(fontSize: 13, color: Color(0xFF696969)),
                 ),
                 Text(
-                  _formatHarga(produk['harga']),
-                  style: const TextStyle(
-                    fontSize: 13,
-                    color: Color(0xFF696969),
-                  ),
+                  _formatHarga(produk['price'] as int),
+                  style: const TextStyle(fontSize: 13, color: Color(0xFF696969)),
                 ),
               ],
             ),
           ),
-          // progress bar stok
           Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              // progress bar
               SizedBox(
                 width: 120,
                 child: ClipRRect(
@@ -448,9 +374,8 @@ class _StokState extends State<Stok> {
             ],
           ),
           const SizedBox(width: 10),
-          // tombol edit stok
           InkWell(
-            onTap: () => _editStok(indexAsli),
+            onTap: () => _editStok(produk),
             borderRadius: BorderRadius.circular(12),
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -461,9 +386,9 @@ class _StokState extends State<Stok> {
               child: const Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.edit, size: 14),
+                  Icon(Icons.info_outline, size: 14),
                   SizedBox(width: 4),
-                  Text('Stok', style: TextStyle(fontSize: 13)),
+                  Text('Info', style: TextStyle(fontSize: 13)),
                 ],
               ),
             ),
