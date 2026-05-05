@@ -30,13 +30,8 @@ class Detail extends StatelessWidget {
           'name': 'Produk Tidak Ditemukan',
           'price': 0,
           'stock': 0,
-          'image': 'assets/icons/Soda.png',
+          'image_url': '',
           'category': '-',
-          'sku': '-',
-          'rak': '-',
-          'area': '-',
-          'masuk': '-',
-          'kadaluarsa': '-',
         };
 
     return Scaffold(
@@ -137,6 +132,7 @@ class Detail extends StatelessWidget {
   }
 
   Widget _buildProductImageSection(Responsive r, Map<String, dynamic> product) {
+    final imageUrl = (product['image_url'] ?? '').toString();
     return Container(
       width: double.infinity,
       padding: EdgeInsets.all(r.space(24)),
@@ -152,16 +148,32 @@ class Detail extends StatelessWidget {
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(20),
-              boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 10)],
+              boxShadow: const [
+                BoxShadow(color: Colors.black12, blurRadius: 10),
+              ],
             ),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(20),
-              child: Image.asset(product['image'], fit: BoxFit.contain),
+              child: imageUrl.isNotEmpty
+                  ? Image.network(
+                      imageUrl,
+                      fit: BoxFit.contain,
+                      errorBuilder: (_, _e, __) => const Icon(
+                        Icons.inventory_2,
+                        size: 64,
+                        color: Color(0xFFBDB76B),
+                      ),
+                    )
+                  : const Icon(
+                      Icons.inventory_2,
+                      size: 64,
+                      color: Color(0xFFBDB76B),
+                    ),
             ),
           ),
           SizedBox(height: r.space(16)),
           Text(
-            product['name'],
+            (product['name'] ?? '-').toString(),
             textAlign: TextAlign.center,
             style: TextStyle(
               color: Colors.black,
@@ -170,7 +182,7 @@ class Detail extends StatelessWidget {
             ),
           ),
           Text(
-            'SKU: ${product['sku']}',
+            (product['category'] ?? '-').toString(),
             style: TextStyle(color: Colors.grey, fontSize: r.font(16)),
           ),
         ],
@@ -183,11 +195,15 @@ class Detail extends StatelessWidget {
       padding: EdgeInsets.all(r.space(24)),
       child: Row(
         children: [
-          _buildInfoCard('Harga', _formatPrice(product['price']), r),
+          _buildInfoCard(
+            'Harga',
+            _formatPrice((product['price'] as num? ?? 0).toInt()),
+            r,
+          ),
           SizedBox(width: r.space(12)),
-          _buildInfoCard('Stok', '${product['stock']} pcs', r),
+          _buildInfoCard('Stok', '${product['stock'] ?? 0} pcs', r),
           SizedBox(width: r.space(12)),
-          _buildInfoCard('Kategori', product['category'], r),
+          _buildInfoCard('Min Stok', '${product['min_stock'] ?? 0} pcs', r),
         ],
       ),
     );
@@ -230,6 +246,10 @@ class Detail extends StatelessWidget {
   }
 
   Widget _buildDateSection(Responsive r, Map<String, dynamic> product) {
+    final category = (product['category'] ?? '-').toString();
+    final minStock = (product['min_stock'] ?? 0).toString();
+    final stock = (product['stock'] ?? 0) as num;
+    final isLow = stock <= (product['min_stock'] ?? 0);
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: r.space(24)),
       child: Container(
@@ -246,7 +266,7 @@ class Detail extends StatelessWidget {
               child: Column(
                 children: [
                   Text(
-                    'TANGGAL MASUK',
+                    'KATEGORI',
                     style: TextStyle(
                       color: Colors.grey,
                       fontSize: r.font(12),
@@ -255,7 +275,7 @@ class Detail extends StatelessWidget {
                   ),
                   SizedBox(height: r.space(4)),
                   Text(
-                    product['masuk'] ?? '-',
+                    category,
                     style: TextStyle(
                       fontSize: r.font(16),
                       fontWeight: FontWeight.bold,
@@ -273,20 +293,20 @@ class Detail extends StatelessWidget {
               child: Column(
                 children: [
                   Text(
-                    'KADALUARSA',
+                    'MIN STOK',
                     style: TextStyle(
-                      color: Colors.redAccent,
+                      color: isLow ? Colors.redAccent : Colors.grey,
                       fontSize: r.font(12),
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                   SizedBox(height: r.space(4)),
                   Text(
-                    product['kadaluarsa'] ?? '-',
+                    minStock,
                     style: TextStyle(
                       fontSize: r.font(16),
                       fontWeight: FontWeight.bold,
-                      color: Colors.red,
+                      color: isLow ? Colors.red : Colors.black,
                     ),
                   ),
                 ],
@@ -299,35 +319,46 @@ class Detail extends StatelessWidget {
   }
 
   Widget _buildLocationSection(Responsive r, Map<String, dynamic> product) {
+    final stock = (product['stock'] ?? 0) as num;
+    final minStock = (product['min_stock'] ?? 0) as num;
+    final isLow = stock <= minStock;
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: r.space(24)),
       child: Container(
         width: double.infinity,
         padding: EdgeInsets.all(r.space(16)),
         decoration: BoxDecoration(
-          color: const Color(0xFFF1F8E9),
+          color: isLow ? const Color(0xFFFFEBEE) : const Color(0xFFF1F8E9),
           borderRadius: BorderRadius.circular(15),
-          border: Border.all(color: Colors.green.shade200),
+          border: Border.all(
+            color: isLow ? Colors.red.shade200 : Colors.green.shade200,
+          ),
         ),
         child: Row(
           children: [
-            Icon(Icons.location_on, color: Colors.green, size: r.icon(32)),
+            Icon(
+              isLow ? Icons.warning_amber_rounded : Icons.check_circle,
+              color: isLow ? Colors.red : Colors.green,
+              size: r.icon(32),
+            ),
             SizedBox(width: r.space(16)),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'LOKASI PRODUK',
+                    isLow ? 'STOK MENIPIS' : 'STOK AMAN',
                     style: TextStyle(
-                      color: Colors.green.shade700,
+                      color: isLow
+                          ? Colors.red.shade700
+                          : Colors.green.shade700,
                       fontSize: r.font(14),
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                   SizedBox(height: r.space(4)),
                   Text(
-                    'RAK NOMOR: ${product['rak']}',
+                    'Sisa stok: $stock pcs',
                     style: TextStyle(
                       color: Colors.black,
                       fontSize: r.font(20),
@@ -335,7 +366,7 @@ class Detail extends StatelessWidget {
                     ),
                   ),
                   Text(
-                    'Area: ${product['area']}',
+                    'Batas minimum: $minStock pcs',
                     style: TextStyle(
                       color: Colors.black54,
                       fontSize: r.font(14),
