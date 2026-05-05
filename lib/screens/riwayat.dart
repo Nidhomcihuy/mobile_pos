@@ -62,7 +62,6 @@ class _RiwayatState extends State<Riwayat> {
     return '$d/$m/$y';
   }
 
-  // Fungsi untuk menampilkan Dialog Detail
   void _showTransactionDetail(
     BuildContext context,
     Map<String, dynamic> data,
@@ -222,7 +221,6 @@ class _RiwayatState extends State<Riwayat> {
             ),
           ),
 
-          // Statistik Section
           Padding(
             padding: EdgeInsets.symmetric(horizontal: r.space(24)),
             child: Column(
@@ -270,7 +268,6 @@ class _RiwayatState extends State<Riwayat> {
           ),
           SizedBox(height: r.space(20)),
 
-          // Table Section
           Expanded(
             child: Container(
               width: double.infinity,
@@ -319,106 +316,130 @@ class _RiwayatState extends State<Riwayat> {
                   ? const Center(child: Text('Belum ada transaksi'))
                   : ClipRRect(
                       borderRadius: BorderRadius.circular(15),
-                      child: SingleChildScrollView(
-                        child: SingleChildScrollView(
-                          scrollDirection: Axis.horizontal,
-                          child: DataTable(
-                            headingRowColor: WidgetStateProperty.all(
-                              const Color(0xFFBDB76B).withValues(alpha: 0.2),
+                      child: LayoutBuilder(
+                        builder: (context, constraints) {
+                          return SingleChildScrollView(
+                            child: SingleChildScrollView(
+                              scrollDirection: Axis.horizontal,
+                              child: ConstrainedBox(
+                                constraints: BoxConstraints(
+                                  minWidth: constraints.maxWidth,
+                                ),
+                                child: DataTable(
+                                  headingRowColor: WidgetStateProperty.all(
+                                    const Color(0xFFBDB76B)
+                                        .withValues(alpha: 0.2),
+                                  ),
+                                  columnSpacing: r.space(35),
+                                  columns: const [
+                                    DataColumn(
+                                      label: Text(
+                                        'INVOICE',
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
+                                    DataColumn(
+                                      label: Text(
+                                        'WAKTU',
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
+                                    DataColumn(
+                                      label: Text(
+                                        'METODE',
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
+                                    DataColumn(
+                                      label: Text(
+                                        'TOTAL',
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
+                                    DataColumn(
+                                      label: Text(
+                                        'AKSI',
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                  rows: _transactions.map((data) {
+                                    final method = (data['payment_method'] ??
+                                            '-')
+                                        .toString()
+                                        .toUpperCase();
+                                    final isQris = method == 'QRIS';
+                                    final createdAt =
+                                        (data['created_at'] ?? '') as String;
+                                    final timePart = createdAt.contains(' ')
+                                        ? createdAt.split(' ').last
+                                        : createdAt;
+                                    return DataRow(
+                                      cells: [
+                                        DataCell(
+                                          Text(
+                                            (data['invoice_number'] ??
+                                                    '#${data['id']}')
+                                                .toString(),
+                                            style:
+                                                const TextStyle(fontSize: 12),
+                                          ),
+                                        ),
+                                        DataCell(Text(timePart)),
+                                        DataCell(
+                                          Text(
+                                            method,
+                                            style: TextStyle(
+                                              color: isQris
+                                                  ? Colors.blue
+                                                  : Colors.green,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                        ),
+                                        DataCell(
+                                          Text(
+                                            _formatPrice(
+                                              (data['total_amount'] as num)
+                                                  .toInt(),
+                                            ),
+                                            style: const TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                        ),
+                                        DataCell(
+                                          IconButton(
+                                            icon: const Icon(
+                                              Icons.visibility,
+                                              color: Color(0xFFCE8947),
+                                            ),
+                                            onPressed: () =>
+                                                _showTransactionDetail(
+                                                  context,
+                                                  data,
+                                                  r,
+                                                ),
+                                          ),
+                                        ),
+                                      ],
+                                    );
+                                  }).toList(),
+                                ),
+                              ),
                             ),
-                            columnSpacing: r.space(35),
-                            columns: const [
-                              DataColumn(
-                                label: Text(
-                                  'INVOICE',
-                                  style: TextStyle(fontWeight: FontWeight.bold),
-                                ),
-                              ),
-                              DataColumn(
-                                label: Text(
-                                  'WAKTU',
-                                  style: TextStyle(fontWeight: FontWeight.bold),
-                                ),
-                              ),
-                              DataColumn(
-                                label: Text(
-                                  'METODE',
-                                  style: TextStyle(fontWeight: FontWeight.bold),
-                                ),
-                              ),
-                              DataColumn(
-                                label: Text(
-                                  'TOTAL',
-                                  style: TextStyle(fontWeight: FontWeight.bold),
-                                ),
-                              ),
-                              DataColumn(
-                                label: Text(
-                                  'AKSI',
-                                  style: TextStyle(fontWeight: FontWeight.bold),
-                                ),
-                              ),
-                            ],
-                            rows: _transactions.map((data) {
-                              final method = (data['payment_method'] ?? '-')
-                                  .toString()
-                                  .toUpperCase();
-                              final isQris = method == 'QRIS';
-                              final createdAt =
-                                  (data['created_at'] ?? '') as String;
-                              final timePart = createdAt.contains(' ')
-                                  ? createdAt.split(' ').last
-                                  : createdAt;
-                              return DataRow(
-                                cells: [
-                                  DataCell(
-                                    Text(
-                                      (data['invoice_number'] ??
-                                              '#${data['id']}')
-                                          .toString(),
-                                      style: const TextStyle(fontSize: 12),
-                                    ),
-                                  ),
-                                  DataCell(Text(timePart)),
-                                  DataCell(
-                                    Text(
-                                      method,
-                                      style: TextStyle(
-                                        color: isQris
-                                            ? Colors.blue
-                                            : Colors.green,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ),
-                                  DataCell(
-                                    Text(
-                                      _formatPrice(
-                                        (data['total_amount'] as num).toInt(),
-                                      ),
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ),
-                                  DataCell(
-                                    IconButton(
-                                      icon: const Icon(
-                                        Icons.visibility,
-                                        color: Color(0xFFCE8947),
-                                      ),
-                                      onPressed: () => _showTransactionDetail(
-                                        context,
-                                        data,
-                                        r,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              );
-                            }).toList(),
-                          ),
-                        ),
+                          );
+                        },
                       ),
                     ),
             ),
@@ -503,7 +524,15 @@ class _RiwayatState extends State<Riwayat> {
         bottom: false,
         child: Row(
           children: [
-            const Icon(Icons.store, color: Colors.white, size: 28),
+            Container(
+              width: r.icon(48),
+              height: r.icon(48),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.2),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(Icons.store, color: Colors.white, size: r.icon(28)),
+            ),
             SizedBox(width: r.space(12)),
             Expanded(
               child: Column(
@@ -512,16 +541,45 @@ class _RiwayatState extends State<Riwayat> {
                   Text(
                     AppConfig.storeName,
                     style: TextStyle(
-                      color: Color(0xFFFFFEE4),
+                      color: const Color(0xFFFFFEE4),
+                      fontSize: r.font(22),
                       fontWeight: FontWeight.w800,
+                      fontFamily: 'Inter',
                     ),
                   ),
                   Text(
                     AppConfig.storeAddress,
-                    style: TextStyle(color: Color(0xFFFFFEE4)),
+                    style: TextStyle(
+                      color: const Color(0xFFFFFEE4),
+                      fontSize: r.font(14),
+                      fontFamily: 'Inter',
+                    ),
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ],
               ),
+            ),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Text(
+                  'Kasir: ${AppConfig.cashierName}',
+                  style: TextStyle(
+                    color: const Color(0xFFFFFEE4),
+                    fontSize: r.font(18),
+                    fontWeight: FontWeight.w800,
+                    fontFamily: 'Inter',
+                  ),
+                ),
+                Text(
+                  AppConfig.todayDate,
+                  style: TextStyle(
+                    color: const Color(0xFFFFFEE4),
+                    fontSize: r.font(14),
+                    fontFamily: 'Inter',
+                  ),
+                ),
+              ],
             ),
           ],
         ),
@@ -546,7 +604,8 @@ class _RiwayatState extends State<Riwayat> {
       child: Row(
         children: List.generate(navItems.length, (index) {
           final isSelected = index == selectedIndex;
-          return Expanded(
+          return Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4),
             child: InkWell(
               onTap: () {
                 if (!isSelected) {
@@ -556,9 +615,12 @@ class _RiwayatState extends State<Riwayat> {
                   );
                 }
               },
+              borderRadius: BorderRadius.circular(10),
               child: Container(
-                alignment: Alignment.center,
-                padding: const EdgeInsets.symmetric(vertical: 10),
+                padding: EdgeInsets.symmetric(
+                  horizontal: r.space(20),
+                  vertical: r.space(10),
+                ),
                 decoration: BoxDecoration(
                   color: isSelected
                       ? const Color(0xFFFFFEE4).withValues(alpha: 0.25)
@@ -573,6 +635,7 @@ class _RiwayatState extends State<Riwayat> {
                         : Colors.black87,
                     fontSize: r.font(16),
                     fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                    fontFamily: 'Inter',
                   ),
                 ),
               ),
