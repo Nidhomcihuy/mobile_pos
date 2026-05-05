@@ -131,7 +131,7 @@ class _DashboardState extends State<Dashboard> {
               width: r.icon(48),
               height: r.icon(48),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.2),
+                color: Colors.white.withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Icon(Icons.store, color: Colors.white, size: r.icon(28)),
@@ -219,8 +219,9 @@ class _DashboardState extends State<Dashboard> {
             padding: EdgeInsets.symmetric(horizontal: r.space(4)),
             child: InkWell(
               onTap: () {
-                if (!isSelected)
+                if (!isSelected) {
                   Navigator.pushReplacementNamed(context, navRoutes[index]);
+                }
               },
               borderRadius: BorderRadius.circular(10),
               child: Container(
@@ -230,7 +231,7 @@ class _DashboardState extends State<Dashboard> {
                 ),
                 decoration: BoxDecoration(
                   color: isSelected
-                      ? const Color(0xFFFFFEE4).withOpacity(0.25)
+                      ? const Color(0xFFFFFEE4).withValues(alpha: 0.25)
                       : Colors.transparent,
                   borderRadius: BorderRadius.circular(10),
                 ),
@@ -338,7 +339,7 @@ class _DashboardState extends State<Dashboard> {
                 decoration: BoxDecoration(
                   color: isSelected
                       ? const Color(0xFFCE8947)
-                      : const Color(0xFFCE8947).withOpacity(0.6),
+                      : const Color(0xFFCE8947).withValues(alpha: 0.6),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Text(
@@ -410,12 +411,12 @@ class _DashboardState extends State<Dashboard> {
         color: Colors.white,
         borderRadius: BorderRadius.circular(18),
         border: Border.all(
-          color: const Color(0xFFD8B84B).withOpacity(0.4),
+          color: const Color(0xFFD8B84B).withValues(alpha: 0.4),
           width: 1.5,
         ),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFFD8B84B).withOpacity(0.08),
+            color: const Color(0xFFD8B84B).withValues(alpha: 0.08),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -432,7 +433,7 @@ class _DashboardState extends State<Dashboard> {
                   ? Image.network(
                       imageUrl,
                       fit: BoxFit.contain,
-                      errorBuilder: (_, __, ___) => const Icon(
+                      errorBuilder: (_, _e, __) => const Icon(
                         Icons.image_not_supported,
                         color: Colors.grey,
                       ),
