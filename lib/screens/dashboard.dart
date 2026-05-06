@@ -41,7 +41,6 @@ class _DashboardState extends State<Dashboard> {
         _isLoading = false;
       });
     } catch (e) {
-      // Fallback ke data lokal jika API gagal atau untuk pengembangan offline
       setState(() {
         _products = _localProducts;
         _categories = ['Makanan', 'Minuman', 'Snack', 'Obat', 'Sembako'];
@@ -54,30 +53,8 @@ class _DashboardState extends State<Dashboard> {
     {'id': 1, 'name': 'Indomie Soto', 'price': 3500, 'stock': 50, 'image': 'assets/images/indsoto.png', 'category': 'Makanan', 'sku': 'IDM-001', 'rak': 'A-12', 'area': 'Makanan Instan', 'masuk': '20/01/2024', 'kadaluarsa': '20/01/2025'},
     {'id': 2, 'name': 'Indomie Goreng', 'price': 3500, 'stock': 45, 'image': 'assets/images/indogoreng.png', 'category': 'Makanan', 'sku': 'IDM-002', 'rak': 'A-12', 'area': 'Makanan Instan', 'masuk': '21/01/2024', 'kadaluarsa': '21/01/2025'},
     {'id': 3, 'name': 'Kanzler Singles', 'price': 9000, 'stock': 20, 'image': 'assets/images/sosisknzlr.png', 'category': 'Makanan', 'sku': 'KNZ-001', 'rak': 'B-05', 'area': 'Frozen Food', 'masuk': '15/02/2024', 'kadaluarsa': '15/05/2024'},
-    {'id': 4, 'name': 'Mie Sedap Cup', 'price': 5000, 'stock': 25, 'image': 'assets/images/sedapcup.png', 'category': 'Makanan', 'sku': 'MSD-001', 'rak': 'A-13', 'area': 'Makanan Instan', 'masuk': '10/01/2024', 'kadaluarsa': '10/01/2025'},
-    {'id': 5, 'name': 'Pop Mie Ayam', 'price': 5500, 'stock': 30, 'image': 'assets/images/popmie.png', 'category': 'Makanan', 'sku': 'POP-001', 'rak': 'A-13', 'area': 'Makanan Instan', 'masuk': '12/01/2024', 'kadaluarsa': '12/01/2025'},
-    {'id': 6, 'name': 'Sosis So Nice', 'price': 1000, 'stock': 100, 'image': 'assets/images/sonicesosis.png', 'category': 'Makanan', 'sku': 'SON-001', 'rak': 'B-06', 'area': 'Snack Basah', 'masuk': '01/02/2024', 'kadaluarsa': '01/08/2024'},
-    {'id': 7, 'name': 'UHT Frisian Flag', 'price': 5500, 'stock': 40, 'image': 'assets/images/uhtfrisian.png', 'category': 'Minuman', 'sku': 'UHT-001', 'rak': 'C-01', 'area': 'Minuman Susu', 'masuk': '05/02/2024', 'kadaluarsa': '05/08/2024'},
-    {'id': 8, 'name': 'UHT Cimory', 'price': 6000, 'stock': 35, 'image': 'assets/images/uhtcimory.png', 'category': 'Minuman', 'sku': 'UHT-002', 'rak': 'C-01', 'area': 'Minuman Susu', 'masuk': '06/02/2024', 'kadaluarsa': '06/08/2024'},
-    {'id': 9, 'name': 'Cimory Yoghurt', 'price': 9500, 'stock': 15, 'image': 'assets/images/cimoryyoghurt.png', 'category': 'Minuman', 'sku': 'YOG-001', 'rak': 'C-02', 'area': 'Minuman Dingin', 'masuk': '10/02/2024', 'kadaluarsa': '10/04/2024'},
     {'id': 10, 'name': 'Aqua 600ml', 'price': 3500, 'stock': 100, 'image': 'assets/images/aqua600.png', 'category': 'Minuman', 'sku': 'AQ-001', 'rak': 'C-03', 'area': 'Air Mineral', 'masuk': '01/01/2024', 'kadaluarsa': '01/01/2026'},
-    {'id': 11, 'name': 'Teh Pucuk Harum', 'price': 4000, 'stock': 60, 'image': 'assets/images/pucukharum.png', 'category': 'Minuman', 'sku': 'TPH-001', 'rak': 'C-04', 'area': 'Teh Kemasan', 'masuk': '15/01/2024', 'kadaluarsa': '15/01/2025'},
-    {'id': 12, 'name': 'Coca Cola 250ml', 'price': 5000, 'stock': 24, 'image': 'assets/images/cocacola.png', 'category': 'Minuman', 'sku': 'CC-001', 'rak': 'C-05', 'area': 'Minuman Soda', 'masuk': '20/01/2024', 'kadaluarsa': '20/01/2025'},
-    {'id': 13, 'name': 'Pocari Sweat', 'price': 7000, 'stock': 30, 'image': 'assets/images/pocari.png', 'category': 'Minuman', 'sku': 'PS-001', 'rak': 'C-05', 'area': 'Minuman Isotonik', 'masuk': '25/01/2024', 'kadaluarsa': '25/01/2026'},
-    {'id': 14, 'name': 'Sari Roti Sandwich', 'price': 5000, 'stock': 20, 'image': 'assets/images/sarirotisand.png', 'category': 'Snack', 'sku': 'ROT-001', 'rak': 'D-01', 'area': 'Roti & Bakery', 'masuk': '28/02/2024', 'kadaluarsa': '05/03/2024'},
-    {'id': 15, 'name': 'Chitato Sapi Panggang', 'price': 12000, 'stock': 15, 'image': 'assets/images/chitatosapi.png', 'category': 'Snack', 'sku': 'CHT-001', 'rak': 'D-02', 'area': 'Makanan Ringan', 'masuk': '10/02/2024', 'kadaluarsa': '10/02/2025'},
-    {'id': 16, 'name': 'Qtela Singkong', 'price': 8000, 'stock': 25, 'image': 'assets/images/qtela.png', 'category': 'Snack', 'sku': 'QTL-001', 'rak': 'D-02', 'area': 'Makanan Ringan', 'masuk': '12/02/2024', 'kadaluarsa': '12/02/2025'},
-    {'id': 17, 'name': 'Oreo Vanilla', 'price': 9000, 'stock': 30, 'image': 'assets/images/oreovnl.png', 'category': 'Snack', 'sku': 'ORO-001', 'rak': 'D-03', 'area': 'Biskuit', 'masuk': '05/01/2024', 'kadaluarsa': '05/01/2025'},
-    {'id': 18, 'name': 'Silverqueen 62g', 'price': 15000, 'stock': 10, 'image': 'assets/images/silverqueen.png', 'category': 'Snack', 'sku': 'SQ-001', 'rak': 'D-04', 'area': 'Cokelat', 'masuk': '01/02/2024', 'kadaluarsa': '01/02/2025'},
-    {'id': 19, 'name': 'Beng-Beng', 'price': 2500, 'stock': 50, 'image': 'assets/images/bengbeng.png', 'category': 'Snack', 'sku': 'BB-001', 'rak': 'D-04', 'area': 'Cokelat', 'masuk': '02/02/2024', 'kadaluarsa': '02/02/2025'},
-    {'id': 20, 'name': 'Panadol Extra', 'price': 12000, 'stock': 20, 'image': 'assets/images/panadolextra.png', 'category': 'Obat', 'sku': 'OBT-001', 'rak': 'E-01', 'area': 'Farmasi', 'masuk': '01/01/2024', 'kadaluarsa': '01/01/2027'},
-    {'id': 21, 'name': 'Paramex', 'price': 3000, 'stock': 40, 'image': 'assets/images/paramex.png', 'category': 'Obat', 'sku': 'OBT-002', 'rak': 'E-01', 'area': 'Farmasi', 'masuk': '02/01/2024', 'kadaluarsa': '02/01/2027'},
-    {'id': 22, 'name': 'Tolak Angin Cair', 'price': 4500, 'stock': 100, 'image': 'assets/images/tolakangin.png', 'category': 'Obat', 'sku': 'OBT-003', 'rak': 'E-01', 'area': 'Farmasi', 'masuk': '10/01/2024', 'kadaluarsa': '10/01/2026'},
-    {'id': 23, 'name': 'Betadine 5ml', 'price': 18000, 'stock': 10, 'image': 'assets/images/btdn.png', 'category': 'Obat', 'sku': 'OBT-004', 'rak': 'E-02', 'area': 'Farmasi', 'masuk': '15/01/2024', 'kadaluarsa': '15/01/2028'},
     {'id': 24, 'name': 'Beras Maknyuss 5kg', 'price': 78000, 'stock': 10, 'image': 'assets/images/berasmkys.png', 'category': 'Sembako', 'sku': 'SMB-001', 'rak': 'F-01', 'area': 'Kebutuhan Pokok', 'masuk': '20/02/2024', 'kadaluarsa': '20/02/2025'},
-    {'id': 25, 'name': 'Gulaku 1kg', 'price': 18000, 'stock': 20, 'image': 'assets/images/gulaku.png', 'category': 'Sembako', 'sku': 'SMB-002', 'rak': 'F-02', 'area': 'Kebutuhan Pokok', 'masuk': '21/02/2024', 'kadaluarsa': '21/02/2026'},
-    {'id': 26, 'name': 'Tepung Segitiga Biru', 'price': 12000, 'stock': 15, 'image': 'assets/images/tepungsb.png', 'category': 'Sembako', 'sku': 'SMB-003', 'rak': 'F-02', 'area': 'Kebutuhan Pokok', 'masuk': '22/02/2024', 'kadaluarsa': '22/02/2025'},
-    {'id': 27, 'name': 'Minyak Goreng 2L', 'price': 35000, 'stock': 12, 'image': 'assets/images/minyak.png', 'category': 'Sembako', 'sku': 'SMB-004', 'rak': 'F-03', 'area': 'Kebutuhan Pokok', 'masuk': '23/02/2024', 'kadaluarsa': '23/02/2025'},
   ];
 
   String _formatPrice(int price) {
@@ -135,9 +112,6 @@ class _DashboardState extends State<Dashboard> {
     );
   }
 
-  // ────────────────────────────────────────
-  //  HEADER
-  // ────────────────────────────────────────
   Widget _buildHeader(Responsive r) {
     return Container(
       width: double.infinity,
@@ -154,60 +128,35 @@ class _DashboardState extends State<Dashboard> {
         child: Row(
           children: [
             Container(
-              width: r.icon(48),
-              height: r.icon(48),
+              width: r.icon(52),
+              height: r.icon(52),
               decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.2),
-                borderRadius: BorderRadius.circular(12),
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(14),
+                boxShadow: [
+                  BoxShadow(color: Colors.black.withValues(alpha: 0.1), blurRadius: 8, offset: const Offset(0, 2)),
+                ],
               ),
-              child: Icon(Icons.store, color: Colors.white, size: r.icon(28)),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(14),
+                child: Image.asset(AppConfig.storeLogo, fit: BoxFit.cover),
+              ),
             ),
             SizedBox(width: r.space(12)),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    AppConfig.storeName,
-                    style: TextStyle(
-                      color: const Color(0xFFFFFEE4),
-                      fontSize: r.font(22),
-                      fontWeight: FontWeight.w800,
-                      fontFamily: 'Inter',
-                    ),
-                  ),
-                  Text(
-                    AppConfig.storeAddress,
-                    style: TextStyle(
-                      color: const Color(0xFFFFFEE4),
-                      fontSize: r.font(14),
-                      fontFamily: 'Inter',
-                    ),
-                    overflow: TextOverflow.ellipsis,
-                  ),
+                  Text(AppConfig.storeName, style: TextStyle(color: const Color(0xFFFFFEE4), fontSize: r.font(22), fontWeight: FontWeight.w800, fontFamily: 'Inter')),
+                  Text(AppConfig.storeAddress, style: TextStyle(color: const Color(0xFFFFFEE4), fontSize: r.font(14), fontFamily: 'Inter'), overflow: TextOverflow.ellipsis),
                 ],
               ),
             ),
             Column(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                Text(
-                  'Kasir: ${AppConfig.cashierName}',
-                  style: TextStyle(
-                    color: const Color(0xFFFFFEE4),
-                    fontSize: r.font(18),
-                    fontWeight: FontWeight.w800,
-                    fontFamily: 'Inter',
-                  ),
-                ),
-                Text(
-                  AppConfig.todayDate,
-                  style: TextStyle(
-                    color: const Color(0xFFFFFEE4),
-                    fontSize: r.font(14),
-                    fontFamily: 'Inter',
-                  ),
-                ),
+                Text('Kasir: ${AppConfig.cashierName}', style: TextStyle(color: const Color(0xFFFFFEE4), fontSize: r.font(18), fontWeight: FontWeight.w800, fontFamily: 'Inter')),
+                Text(AppConfig.todayDate, style: TextStyle(color: const Color(0xFFFFFEE4), fontSize: r.font(14), fontFamily: 'Inter')),
               ],
             ),
           ],
@@ -216,9 +165,6 @@ class _DashboardState extends State<Dashboard> {
     );
   }
 
-  // ────────────────────────────────────────
-  //  NAVIGATION BAR
-  // ────────────────────────────────────────
   Widget _buildNavBar(BuildContext context, Responsive r) {
     final navItems = ['Dashboard', 'Kasir', 'Riwayat'];
     const selectedIndex = 0;
@@ -226,35 +172,31 @@ class _DashboardState extends State<Dashboard> {
     return Container(
       margin: EdgeInsets.only(left: r.space(20), right: r.space(20), top: r.space(12)),
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-      decoration: BoxDecoration(
-        color: const Color(0xFFBDB76B),
-        borderRadius: BorderRadius.circular(14),
-      ),
+      decoration: BoxDecoration(color: const Color(0xFFBDB76B), borderRadius: BorderRadius.circular(14)),
       child: Row(
         children: List.generate(navItems.length, (index) {
           final isSelected = index == selectedIndex;
-          return Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 4),
-            child: InkWell(
-              onTap: () {
-                if (!isSelected) {
-                  Navigator.pushReplacementNamed(context, '/${navItems[index].toLowerCase()}');
-                }
-              },
-              borderRadius: BorderRadius.circular(10),
-              child: Container(
-                padding: EdgeInsets.symmetric(horizontal: r.space(20), vertical: r.space(10)),
-                decoration: BoxDecoration(
-                  color: isSelected ? const Color(0xFFFFFEE4).withValues(alpha: 0.25) : Colors.transparent,
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Text(
-                  navItems[index],
-                  style: TextStyle(
-                    color: isSelected ? const Color(0xFFFFFEE4) : Colors.black87,
-                    fontSize: r.font(16),
-                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-                    fontFamily: 'Inter',
+          return Expanded(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 4),
+              child: InkWell(
+                onTap: () { if (!isSelected) Navigator.pushReplacementNamed(context, '/${navItems[index].toLowerCase()}'); },
+                borderRadius: BorderRadius.circular(10),
+                child: Container(
+                  padding: EdgeInsets.symmetric(vertical: r.space(10)),
+                  decoration: BoxDecoration(
+                    color: isSelected ? const Color(0xFFFFFEE4).withOpacity(0.25) : Colors.transparent,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  alignment: Alignment.center,
+                  child: Text(
+                    navItems[index],
+                    style: TextStyle(
+                      color: isSelected ? const Color(0xFFFFFEE4) : Colors.black87,
+                      fontSize: r.font(16),
+                      fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                      fontFamily: 'Inter',
+                    ),
                   ),
                 ),
               ),
@@ -265,19 +207,12 @@ class _DashboardState extends State<Dashboard> {
     );
   }
 
-  // ────────────────────────────────────────
-  //  SEARCH BAR
-  // ────────────────────────────────────────
   Widget _buildSearchBar(Responsive r) {
     return Row(
       children: [
         Expanded(
           child: Container(
-            decoration: BoxDecoration(
-              color: const Color(0xFFFFFEE4),
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: const Color(0xFFD9D9D9), width: 2),
-            ),
+            decoration: BoxDecoration(color: const Color(0xFFFFFEE4), borderRadius: BorderRadius.circular(10), border: Border.all(color: const Color(0xFFD9D9D9), width: 2)),
             child: TextField(
               onChanged: (value) => setState(() => _searchQuery = value),
               style: TextStyle(fontSize: r.font(16), fontFamily: 'Inter'),
@@ -296,28 +231,14 @@ class _DashboardState extends State<Dashboard> {
           onTap: () {},
           child: Container(
             padding: EdgeInsets.symmetric(horizontal: r.space(22), vertical: r.space(12)),
-            decoration: BoxDecoration(
-              color: const Color(0xFFCE8947),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Text(
-              'cari',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: r.font(16),
-                fontWeight: FontWeight.w500,
-                fontFamily: 'Inter',
-              ),
-            ),
+            decoration: BoxDecoration(color: const Color(0xFFCE8947), borderRadius: BorderRadius.circular(10)),
+            child: Text('cari', style: TextStyle(color: Colors.white, fontSize: r.font(16), fontWeight: FontWeight.w500, fontFamily: 'Inter')),
           ),
         ),
       ],
     );
   }
 
-  // ────────────────────────────────────────
-  //  CATEGORY FILTERS
-  // ────────────────────────────────────────
   Widget _buildCategoryFilters(Responsive r) {
     final allItems = ['Semua', ..._categories];
     return SingleChildScrollView(
@@ -333,18 +254,10 @@ class _DashboardState extends State<Dashboard> {
               child: Container(
                 padding: EdgeInsets.symmetric(horizontal: r.space(16), vertical: r.space(10)),
                 decoration: BoxDecoration(
-                  color: isSelected ? const Color(0xFFCE8947) : const Color(0xFFCE8947).withValues(alpha: 0.6),
+                  color: isSelected ? const Color(0xFFCE8947) : const Color(0xFFCE8947).withOpacity(0.6),
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: Text(
-                  name,
-                  style: TextStyle(
-                    color: const Color(0xFFFFFEE4),
-                    fontSize: r.font(14),
-                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-                    fontFamily: 'Inter',
-                  ),
-                ),
+                child: Text(name, style: TextStyle(color: const Color(0xFFFFFEE4), fontSize: r.font(14), fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400, fontFamily: 'Inter')),
               ),
             ),
           );
@@ -354,10 +267,7 @@ class _DashboardState extends State<Dashboard> {
   }
 
   Widget _buildProductGrid(Responsive r) {
-    if (_isLoading) {
-      return const Center(child: CircularProgressIndicator(color: Color(0xFFBDB76B)));
-    }
-
+    if (_isLoading) return const Center(child: CircularProgressIndicator(color: Color(0xFFBDB76B)));
     final products = _filteredProducts;
     return GridView.builder(
       padding: EdgeInsets.only(bottom: r.space(20)),
@@ -377,8 +287,8 @@ class _DashboardState extends State<Dashboard> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: const Color(0xFFD8B84B).withValues(alpha: 0.4), width: 1.5),
-        boxShadow: [BoxShadow(color: const Color(0xFFD8B84B).withValues(alpha: 0.08), blurRadius: 8, offset: const Offset(0, 2))],
+        border: Border.all(color: const Color(0xFFD8B84B).withOpacity(0.4), width: 1.5),
+        boxShadow: [BoxShadow(color: const Color(0xFFD8B84B).withOpacity(0.08), blurRadius: 8, offset: const Offset(0, 2))],
       ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -388,16 +298,10 @@ class _DashboardState extends State<Dashboard> {
             child: Padding(
               padding: EdgeInsets.all(r.space(12)),
               child: () {
-                // Prioritas gambar lokal jika ada di data product['image']
                 final localPath = product['image'] as String?;
                 final networkUrl = product['image_url'] as String?;
-                
                 if (localPath != null && localPath.isNotEmpty) {
-                  return Image.asset(
-                    localPath,
-                    fit: BoxFit.contain,
-                    errorBuilder: (_, __, ___) => _networkOrPlaceholder(networkUrl),
-                  );
+                  return Image.asset(localPath, fit: BoxFit.contain, errorBuilder: (_, __, ___) => _networkOrPlaceholder(networkUrl));
                 }
                 return _networkOrPlaceholder(networkUrl);
               }(),
@@ -426,11 +330,7 @@ class _DashboardState extends State<Dashboard> {
 
   Widget _networkOrPlaceholder(String? url) {
     if (url != null && url.isNotEmpty) {
-      return Image.network(
-        url,
-        fit: BoxFit.contain,
-        errorBuilder: (_, __, ___) => const Icon(Icons.image_not_supported, color: Colors.grey),
-      );
+      return Image.network(url, fit: BoxFit.contain, errorBuilder: (_, __, ___) => const Icon(Icons.image_not_supported, color: Colors.grey));
     }
     return const Icon(Icons.inventory_2, size: 48, color: Color(0xFFBDB76B));
   }

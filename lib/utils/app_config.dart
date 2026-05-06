@@ -8,6 +8,7 @@ class AppConfig {
   static String storeName = 'POS';
   static String storeAddress = '';
   static String cashierName = '';
+  static String storeLogo = 'assets/icons/ILSLOGOMERAH.jpeg'; // Path logo toko
 
   static String get todayDate {
     final now = DateTime.now();
