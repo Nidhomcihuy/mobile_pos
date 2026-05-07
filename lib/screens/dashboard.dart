@@ -17,7 +17,6 @@ class _DashboardState extends State<Dashboard> {
   List<Map<String, dynamic>> _products = [];
   List<String> _categories = [];
   bool _isLoading = true;
-  String? _errorMessage;
 
   @override
   void initState() {
@@ -28,7 +27,6 @@ class _DashboardState extends State<Dashboard> {
   Future<void> _loadData() async {
     setState(() {
       _isLoading = true;
-      _errorMessage = null;
     });
     try {
       final results = await Future.wait([
@@ -50,11 +48,71 @@ class _DashboardState extends State<Dashboard> {
   }
 
   final List<Map<String, dynamic>> _localProducts = [
-    {'id': 1, 'name': 'Indomie Soto', 'price': 3500, 'stock': 50, 'image': 'assets/images/indsoto.png', 'category': 'Makanan', 'sku': 'IDM-001', 'rak': 'A-12', 'area': 'Makanan Instan', 'masuk': '20/01/2024', 'kadaluarsa': '20/01/2025'},
-    {'id': 2, 'name': 'Indomie Goreng', 'price': 3500, 'stock': 45, 'image': 'assets/images/indogoreng.png', 'category': 'Makanan', 'sku': 'IDM-002', 'rak': 'A-12', 'area': 'Makanan Instan', 'masuk': '21/01/2024', 'kadaluarsa': '21/01/2025'},
-    {'id': 3, 'name': 'Kanzler Singles', 'price': 9000, 'stock': 20, 'image': 'assets/images/sosisknzlr.png', 'category': 'Makanan', 'sku': 'KNZ-001', 'rak': 'B-05', 'area': 'Frozen Food', 'masuk': '15/02/2024', 'kadaluarsa': '15/05/2024'},
-    {'id': 10, 'name': 'Aqua 600ml', 'price': 3500, 'stock': 100, 'image': 'assets/images/aqua600.png', 'category': 'Minuman', 'sku': 'AQ-001', 'rak': 'C-03', 'area': 'Air Mineral', 'masuk': '01/01/2024', 'kadaluarsa': '01/01/2026'},
-    {'id': 24, 'name': 'Beras Maknyuss 5kg', 'price': 78000, 'stock': 10, 'image': 'assets/images/berasmkys.png', 'category': 'Sembako', 'sku': 'SMB-001', 'rak': 'F-01', 'area': 'Kebutuhan Pokok', 'masuk': '20/02/2024', 'kadaluarsa': '20/02/2025'},
+    {
+      'id': 1,
+      'name': 'Indomie Soto',
+      'price': 3500,
+      'stock': 50,
+      'image': 'assets/images/indsoto.png',
+      'category': 'Makanan',
+      'sku': 'IDM-001',
+      'rak': 'A-12',
+      'area': 'Makanan Instan',
+      'masuk': '20/01/2024',
+      'kadaluarsa': '20/01/2025',
+    },
+    {
+      'id': 2,
+      'name': 'Indomie Goreng',
+      'price': 3500,
+      'stock': 45,
+      'image': 'assets/images/indogoreng.png',
+      'category': 'Makanan',
+      'sku': 'IDM-002',
+      'rak': 'A-12',
+      'area': 'Makanan Instan',
+      'masuk': '21/01/2024',
+      'kadaluarsa': '21/01/2025',
+    },
+    {
+      'id': 3,
+      'name': 'Kanzler Singles',
+      'price': 9000,
+      'stock': 20,
+      'image': 'assets/images/sosisknzlr.png',
+      'category': 'Makanan',
+      'sku': 'KNZ-001',
+      'rak': 'B-05',
+      'area': 'Frozen Food',
+      'masuk': '15/02/2024',
+      'kadaluarsa': '15/05/2024',
+    },
+    {
+      'id': 10,
+      'name': 'Aqua 600ml',
+      'price': 3500,
+      'stock': 100,
+      'image': 'assets/images/aqua600.png',
+      'category': 'Minuman',
+      'sku': 'AQ-001',
+      'rak': 'C-03',
+      'area': 'Air Mineral',
+      'masuk': '01/01/2024',
+      'kadaluarsa': '01/01/2026',
+    },
+    {
+      'id': 24,
+      'name': 'Beras Maknyuss 5kg',
+      'price': 78000,
+      'stock': 10,
+      'image': 'assets/images/berasmkys.png',
+      'category': 'Sembako',
+      'sku': 'SMB-001',
+      'rak': 'F-01',
+      'area': 'Kebutuhan Pokok',
+      'masuk': '20/02/2024',
+      'kadaluarsa': '20/02/2025',
+    },
   ];
 
   String _formatPrice(int price) {
@@ -74,10 +132,13 @@ class _DashboardState extends State<Dashboard> {
   List<Map<String, dynamic>> get _filteredProducts {
     return _products.where((product) {
       final matchCategory =
-          _selectedCategory == 'Semua' || product['category'] == _selectedCategory;
+          _selectedCategory == 'Semua' ||
+          product['category'] == _selectedCategory;
       final matchSearch =
           _searchQuery.isEmpty ||
-          (product['name'] as String).toLowerCase().contains(_searchQuery.toLowerCase());
+          (product['name'] as String).toLowerCase().contains(
+            _searchQuery.toLowerCase(),
+          );
       return matchCategory && matchSearch;
     }).toList();
   }
@@ -87,7 +148,7 @@ class _DashboardState extends State<Dashboard> {
     final r = Responsive.of(context);
 
     return Scaffold(
-      backgroundColor: const Color(0xFFFFFDE3),
+      backgroundColor: const Color(0xFFFFEBEE),
       body: Column(
         children: [
           _buildHeader(r),
@@ -115,9 +176,12 @@ class _DashboardState extends State<Dashboard> {
   Widget _buildHeader(Responsive r) {
     return Container(
       width: double.infinity,
-      padding: EdgeInsets.symmetric(horizontal: r.space(20), vertical: r.space(14)),
+      padding: EdgeInsets.symmetric(
+        horizontal: r.space(20),
+        vertical: r.space(14),
+      ),
       decoration: const BoxDecoration(
-        color: Color(0xFFBDB76B),
+        color: Color(0xFFC62828),
         borderRadius: BorderRadius.only(
           bottomLeft: Radius.circular(24),
           bottomRight: Radius.circular(24),
@@ -134,7 +198,11 @@ class _DashboardState extends State<Dashboard> {
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(14),
                 boxShadow: [
-                  BoxShadow(color: Colors.black.withValues(alpha: 0.1), blurRadius: 8, offset: const Offset(0, 2)),
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.1),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
                 ],
               ),
               child: ClipRRect(
@@ -147,16 +215,47 @@ class _DashboardState extends State<Dashboard> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(AppConfig.storeName, style: TextStyle(color: const Color(0xFFFFFEE4), fontSize: r.font(22), fontWeight: FontWeight.w800, fontFamily: 'Inter')),
-                  Text(AppConfig.storeAddress, style: TextStyle(color: const Color(0xFFFFFEE4), fontSize: r.font(14), fontFamily: 'Inter'), overflow: TextOverflow.ellipsis),
+                  Text(
+                    AppConfig.storeName,
+                    style: TextStyle(
+                      color: const Color(0xFFFFFFFF),
+                      fontSize: r.font(22),
+                      fontWeight: FontWeight.w800,
+                      fontFamily: 'Inter',
+                    ),
+                  ),
+                  Text(
+                    AppConfig.storeAddress,
+                    style: TextStyle(
+                      color: const Color(0xFFFFFFFF),
+                      fontSize: r.font(14),
+                      fontFamily: 'Inter',
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ],
               ),
             ),
             Column(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                Text('Kasir: ${AppConfig.cashierName}', style: TextStyle(color: const Color(0xFFFFFEE4), fontSize: r.font(18), fontWeight: FontWeight.w800, fontFamily: 'Inter')),
-                Text(AppConfig.todayDate, style: TextStyle(color: const Color(0xFFFFFEE4), fontSize: r.font(14), fontFamily: 'Inter')),
+                Text(
+                  'Kasir: ${AppConfig.cashierName}',
+                  style: TextStyle(
+                    color: const Color(0xFFFFFFFF),
+                    fontSize: r.font(18),
+                    fontWeight: FontWeight.w800,
+                    fontFamily: 'Inter',
+                  ),
+                ),
+                Text(
+                  AppConfig.todayDate,
+                  style: TextStyle(
+                    color: const Color(0xFFFFFFFF),
+                    fontSize: r.font(14),
+                    fontFamily: 'Inter',
+                  ),
+                ),
               ],
             ),
           ],
@@ -170,9 +269,16 @@ class _DashboardState extends State<Dashboard> {
     const selectedIndex = 0;
 
     return Container(
-      margin: EdgeInsets.only(left: r.space(20), right: r.space(20), top: r.space(12)),
+      margin: EdgeInsets.only(
+        left: r.space(20),
+        right: r.space(20),
+        top: r.space(12),
+      ),
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-      decoration: BoxDecoration(color: const Color(0xFFBDB76B), borderRadius: BorderRadius.circular(14)),
+      decoration: BoxDecoration(
+        color: const Color(0xFFC62828),
+        borderRadius: BorderRadius.circular(14),
+      ),
       child: Row(
         children: List.generate(navItems.length, (index) {
           final isSelected = index == selectedIndex;
@@ -180,21 +286,33 @@ class _DashboardState extends State<Dashboard> {
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 4),
               child: InkWell(
-                onTap: () { if (!isSelected) Navigator.pushReplacementNamed(context, '/${navItems[index].toLowerCase()}'); },
+                onTap: () {
+                  if (!isSelected)
+                    Navigator.pushReplacementNamed(
+                      context,
+                      '/${navItems[index].toLowerCase()}',
+                    );
+                },
                 borderRadius: BorderRadius.circular(10),
                 child: Container(
                   padding: EdgeInsets.symmetric(vertical: r.space(10)),
                   decoration: BoxDecoration(
-                    color: isSelected ? const Color(0xFFFFFEE4).withOpacity(0.25) : Colors.transparent,
+                    color: isSelected
+                        ? const Color(0xFFFFFFFF).withValues(alpha: 0.25)
+                        : Colors.transparent,
                     borderRadius: BorderRadius.circular(10),
                   ),
                   alignment: Alignment.center,
                   child: Text(
                     navItems[index],
                     style: TextStyle(
-                      color: isSelected ? const Color(0xFFFFFEE4) : Colors.black87,
+                      color: isSelected
+                          ? const Color(0xFFFFFFFF)
+                          : Colors.black87,
                       fontSize: r.font(16),
-                      fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                      fontWeight: isSelected
+                          ? FontWeight.w600
+                          : FontWeight.w400,
                       fontFamily: 'Inter',
                     ),
                   ),
@@ -212,16 +330,30 @@ class _DashboardState extends State<Dashboard> {
       children: [
         Expanded(
           child: Container(
-            decoration: BoxDecoration(color: const Color(0xFFFFFEE4), borderRadius: BorderRadius.circular(10), border: Border.all(color: const Color(0xFFD9D9D9), width: 2)),
+            decoration: BoxDecoration(
+              color: const Color(0xFFFFFFFF),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: const Color(0xFFD9D9D9), width: 2),
+            ),
             child: TextField(
               onChanged: (value) => setState(() => _searchQuery = value),
               style: TextStyle(fontSize: r.font(16), fontFamily: 'Inter'),
               decoration: InputDecoration(
                 hintText: 'cari produk',
-                hintStyle: TextStyle(color: const Color(0xFF696969), fontSize: r.font(16)),
-                prefixIcon: Icon(Icons.search, color: const Color(0xFF696969), size: r.icon(24)),
+                hintStyle: TextStyle(
+                  color: const Color(0xFF696969),
+                  fontSize: r.font(16),
+                ),
+                prefixIcon: Icon(
+                  Icons.search,
+                  color: const Color(0xFF696969),
+                  size: r.icon(24),
+                ),
                 border: InputBorder.none,
-                contentPadding: EdgeInsets.symmetric(horizontal: r.space(16), vertical: r.space(12)),
+                contentPadding: EdgeInsets.symmetric(
+                  horizontal: r.space(16),
+                  vertical: r.space(12),
+                ),
               ),
             ),
           ),
@@ -230,9 +362,23 @@ class _DashboardState extends State<Dashboard> {
         InkWell(
           onTap: () {},
           child: Container(
-            padding: EdgeInsets.symmetric(horizontal: r.space(22), vertical: r.space(12)),
-            decoration: BoxDecoration(color: const Color(0xFFCE8947), borderRadius: BorderRadius.circular(10)),
-            child: Text('cari', style: TextStyle(color: Colors.white, fontSize: r.font(16), fontWeight: FontWeight.w500, fontFamily: 'Inter')),
+            padding: EdgeInsets.symmetric(
+              horizontal: r.space(22),
+              vertical: r.space(12),
+            ),
+            decoration: BoxDecoration(
+              color: const Color(0xFFB71C1C),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Text(
+              'cari',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: r.font(16),
+                fontWeight: FontWeight.w500,
+                fontFamily: 'Inter',
+              ),
+            ),
           ),
         ),
       ],
@@ -252,12 +398,25 @@ class _DashboardState extends State<Dashboard> {
               onTap: () => setState(() => _selectedCategory = name),
               borderRadius: BorderRadius.circular(10),
               child: Container(
-                padding: EdgeInsets.symmetric(horizontal: r.space(16), vertical: r.space(10)),
+                padding: EdgeInsets.symmetric(
+                  horizontal: r.space(16),
+                  vertical: r.space(10),
+                ),
                 decoration: BoxDecoration(
-                  color: isSelected ? const Color(0xFFCE8947) : const Color(0xFFCE8947).withOpacity(0.6),
+                  color: isSelected
+                      ? const Color(0xFFB71C1C)
+                      : const Color(0xFFB71C1C).withValues(alpha: 0.6),
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: Text(name, style: TextStyle(color: const Color(0xFFFFFEE4), fontSize: r.font(14), fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400, fontFamily: 'Inter')),
+                child: Text(
+                  name,
+                  style: TextStyle(
+                    color: const Color(0xFFFFFFFF),
+                    fontSize: r.font(14),
+                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                    fontFamily: 'Inter',
+                  ),
+                ),
               ),
             ),
           );
@@ -267,7 +426,10 @@ class _DashboardState extends State<Dashboard> {
   }
 
   Widget _buildProductGrid(Responsive r) {
-    if (_isLoading) return const Center(child: CircularProgressIndicator(color: Color(0xFFBDB76B)));
+    if (_isLoading)
+      return const Center(
+        child: CircularProgressIndicator(color: Color(0xFFC62828)),
+      );
     final products = _filteredProducts;
     return GridView.builder(
       padding: EdgeInsets.only(bottom: r.space(20)),
@@ -287,8 +449,17 @@ class _DashboardState extends State<Dashboard> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: const Color(0xFFD8B84B).withOpacity(0.4), width: 1.5),
-        boxShadow: [BoxShadow(color: const Color(0xFFD8B84B).withOpacity(0.08), blurRadius: 8, offset: const Offset(0, 2))],
+        border: Border.all(
+          color: const Color(0xFFE53935).withValues(alpha: 0.4),
+          width: 1.5,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFFE53935).withValues(alpha: 0.08),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -301,24 +472,60 @@ class _DashboardState extends State<Dashboard> {
                 final localPath = product['image'] as String?;
                 final networkUrl = product['image_url'] as String?;
                 if (localPath != null && localPath.isNotEmpty) {
-                  return Image.asset(localPath, fit: BoxFit.contain, errorBuilder: (_, __, ___) => _networkOrPlaceholder(networkUrl));
+                  return Image.asset(
+                    localPath,
+                    fit: BoxFit.contain,
+                    errorBuilder: (_, _, _) =>
+                        _networkOrPlaceholder(networkUrl),
+                  );
                 }
                 return _networkOrPlaceholder(networkUrl);
               }(),
             ),
           ),
-          Text(product['name'], style: TextStyle(color: Colors.black, fontSize: r.font(13), fontWeight: FontWeight.bold), textAlign: TextAlign.center, maxLines: 1, overflow: TextOverflow.ellipsis),
-          Text(_formatPrice(product['price']), style: TextStyle(color: const Color(0xFF1D1B1B), fontSize: r.font(12))),
-          Text('Stok: ${product['stock']}', style: TextStyle(color: const Color(0xFF1D1B1B), fontSize: r.font(12))),
+          Text(
+            product['name'],
+            style: TextStyle(
+              color: Colors.black,
+              fontSize: r.font(13),
+              fontWeight: FontWeight.bold,
+            ),
+            textAlign: TextAlign.center,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+          Text(
+            _formatPrice(product['price']),
+            style: TextStyle(
+              color: const Color(0xFF1D1B1B),
+              fontSize: r.font(12),
+            ),
+          ),
+          Text(
+            'Stok: ${product['stock']}',
+            style: TextStyle(
+              color: const Color(0xFF1D1B1B),
+              fontSize: r.font(12),
+            ),
+          ),
           SizedBox(height: r.space(8)),
           Padding(
             padding: EdgeInsets.symmetric(horizontal: r.space(12)),
             child: SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                onPressed: () => Navigator.pushNamed(context, '/detail', arguments: product),
-                style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFD8B84B), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20))),
-                child: Text('Lihat', style: TextStyle(fontSize: r.font(12), color: Colors.white)),
+                onPressed: () =>
+                    Navigator.pushNamed(context, '/detail', arguments: product),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFFE53935),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                ),
+                child: Text(
+                  'Lihat',
+                  style: TextStyle(fontSize: r.font(12), color: Colors.white),
+                ),
               ),
             ),
           ),
@@ -330,8 +537,13 @@ class _DashboardState extends State<Dashboard> {
 
   Widget _networkOrPlaceholder(String? url) {
     if (url != null && url.isNotEmpty) {
-      return Image.network(url, fit: BoxFit.contain, errorBuilder: (_, __, ___) => const Icon(Icons.image_not_supported, color: Colors.grey));
+      return Image.network(
+        url,
+        fit: BoxFit.contain,
+        errorBuilder: (_, _, _) =>
+            const Icon(Icons.image_not_supported, color: Colors.grey),
+      );
     }
-    return const Icon(Icons.inventory_2, size: 48, color: Color(0xFFBDB76B));
+    return const Icon(Icons.inventory_2, size: 48, color: Color(0xFFC62828));
   }
 }

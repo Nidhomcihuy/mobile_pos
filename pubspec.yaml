@@ -34,6 +34,13 @@ dependencies:
   cupertino_icons: ^1.0.8
   http: ^1.2.2
 
+  # Thermal Printer via Bluetooth langsung (tanpa app pihak ketiga)
+  esc_pos_utils_plus: ^2.0.3 # ESC/POS command generator
+  print_bluetooth_thermal: ^1.1.9 # Koneksi Bluetooth langsung ke printer thermal
+  shared_preferences: ^2.3.0 # Simpan alamat MAC printer yang dipilih
+  permission_handler: ^11.3.1 # Request izin Bluetooth runtime (Android 12+)
+  path_provider: ^2.1.5 # Akses temp directory
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -53,6 +60,7 @@ flutter:
   assets:
     - assets/icons/
     - assets/images/
+    - packages/esc_pos_utils_plus/resources/capabilities.json
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
   # the material Icons class.

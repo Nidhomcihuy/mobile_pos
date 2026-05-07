@@ -5,6 +5,7 @@ import 'screens/riwayat.dart';
 import 'screens/stok.dart';
 import 'screens/detail.dart';
 import 'screens/pembayaran.dart';
+import 'screens/printer_screen.dart';
 import 'utils/app_config.dart';
 
 void main() async {
@@ -22,7 +23,7 @@ class MyApp extends StatelessWidget {
       title: 'POS Toserba',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFFBDB76B)),
+        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFFC62828)),
         fontFamily: 'Inter',
       ),
       initialRoute: '/dashboard',
@@ -33,6 +34,7 @@ class MyApp extends StatelessWidget {
         '/detail': (context) => const Detail(),
         '/pembayaran': (context) => const Pembayaran(),
         '/stok': (context) => const Stok(),
+        '/printer': (context) => const PrinterScreen(),
       },
     );
   }

@@ -65,7 +65,7 @@ class _StokState extends State<Stok> {
 
   Color _warnaStok(int stok, int minStok) {
     if (stok == 0) return const Color(0xFFBE3A0A);
-    if (stok <= minStok) return const Color(0xFFD8B84B);
+    if (stok <= minStok) return const Color(0xFFE53935);
     return const Color(0xFF0ABE10);
   }
 
@@ -83,7 +83,7 @@ class _StokState extends State<Stok> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFFFFDE3),
+      backgroundColor: const Color(0xFFFFEBEE),
       body: Column(
         children: [
           _buildHeader(),
@@ -115,7 +115,7 @@ class _StokState extends State<Stok> {
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
       decoration: const BoxDecoration(
-        color: Color(0xFFBDB76B),
+        color: Color(0xFFC62828),
         borderRadius: BorderRadius.only(
           bottomLeft: Radius.circular(24),
           bottomRight: Radius.circular(24),
@@ -141,14 +141,14 @@ class _StokState extends State<Stok> {
                 Text(
                   AppConfig.storeName,
                   style: TextStyle(
-                    color: Color(0xFFFFFEE4),
+                    color: Color(0xFFFFFFFF),
                     fontSize: 22,
                     fontWeight: FontWeight.w800,
                   ),
                 ),
                 Text(
                   AppConfig.storeAddress,
-                  style: TextStyle(color: Color(0xFFFFFEE4), fontSize: 14),
+                  style: TextStyle(color: Color(0xFFFFFFFF), fontSize: 14),
                 ),
               ],
             ),
@@ -159,14 +159,14 @@ class _StokState extends State<Stok> {
                 Text(
                   'Kasir: ${AppConfig.cashierName}',
                   style: TextStyle(
-                    color: Color(0xFFFFFEE4),
+                    color: Color(0xFFFFFFFF),
                     fontSize: 18,
                     fontWeight: FontWeight.w800,
                   ),
                 ),
                 Text(
                   AppConfig.todayDate,
-                  style: TextStyle(color: Color(0xFFFFFEE4), fontSize: 14),
+                  style: TextStyle(color: Color(0xFFFFFFFF), fontSize: 14),
                 ),
               ],
             ),
@@ -186,7 +186,7 @@ class _StokState extends State<Stok> {
       margin: const EdgeInsets.only(left: 20, right: 20, top: 12),
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
       decoration: BoxDecoration(
-        color: const Color(0xFFBDB76B),
+        color: const Color(0xFFC62828),
         borderRadius: BorderRadius.circular(14),
       ),
       child: Row(
@@ -208,14 +208,14 @@ class _StokState extends State<Stok> {
                 ),
                 decoration: BoxDecoration(
                   color: aktif
-                      ? const Color(0xFFFFFEE4).withValues(alpha: 0.25)
+                      ? const Color(0xFFFFFFFF).withValues(alpha: 0.25)
                       : Colors.transparent,
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Text(
                   items[i],
                   style: TextStyle(
-                    color: aktif ? const Color(0xFFFFFEE4) : Colors.black87,
+                    color: aktif ? const Color(0xFFFFFFFF) : Colors.black87,
                     fontSize: 16,
                     fontWeight: aktif ? FontWeight.w600 : FontWeight.w400,
                   ),
@@ -232,7 +232,7 @@ class _StokState extends State<Stok> {
   Widget _buildSearchBar() {
     return Container(
       decoration: BoxDecoration(
-        color: const Color(0xFFFFFEE4),
+        color: const Color(0xFFFFFFFF),
         borderRadius: BorderRadius.circular(10),
         border: Border.all(color: const Color(0xFFD9D9D9), width: 2),
       ),
@@ -253,7 +253,7 @@ class _StokState extends State<Stok> {
   Widget _buildListProduk() {
     if (_isLoading) {
       return const Center(
-        child: CircularProgressIndicator(color: Color(0xFFBDB76B)),
+        child: CircularProgressIndicator(color: Color(0xFFC62828)),
       );
     }
     if (_errorMessage != null) {
@@ -271,7 +271,7 @@ class _StokState extends State<Stok> {
             ElevatedButton(
               onPressed: _loadProducts,
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFFBDB76B),
+                backgroundColor: const Color(0xFFC62828),
               ),
               child: const Text(
                 'Coba Lagi',
@@ -312,10 +312,10 @@ class _StokState extends State<Stok> {
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: const Color(0xFFFFFEE4),
+        color: const Color(0xFFFFFFFF),
         borderRadius: BorderRadius.circular(10),
         border: Border.all(
-          color: const Color(0xFFD8B84B).withValues(alpha: 0.5),
+          color: const Color(0xFFE53935).withValues(alpha: 0.5),
           width: 2,
         ),
       ),
@@ -334,9 +334,9 @@ class _StokState extends State<Stok> {
                     imageUrl,
                     fit: BoxFit.contain,
                     errorBuilder: (_, _e, __) =>
-                        const Icon(Icons.inventory_2, color: Color(0xFFBDB76B)),
+                        const Icon(Icons.inventory_2, color: Color(0xFFC62828)),
                   )
-                : const Icon(Icons.inventory_2, color: Color(0xFFBDB76B)),
+                : const Icon(Icons.inventory_2, color: Color(0xFFC62828)),
           ),
           const SizedBox(width: 14),
           Expanded(

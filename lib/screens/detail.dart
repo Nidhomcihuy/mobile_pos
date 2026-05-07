@@ -35,7 +35,7 @@ class Detail extends StatelessWidget {
         };
 
     return Scaffold(
-      backgroundColor: const Color(0xFFFFFDE3),
+      backgroundColor: const Color(0xFFFFEBEE),
       body: Column(
         children: [
           _buildHeader(r),
@@ -53,7 +53,7 @@ class Detail extends StatelessWidget {
                       vertical: r.space(14),
                     ),
                     decoration: const BoxDecoration(
-                      color: Color(0xFFBDB76B),
+                      color: Color(0xFFC62828),
                       borderRadius: BorderRadius.only(
                         topLeft: Radius.circular(25),
                         topRight: Radius.circular(25),
@@ -65,7 +65,7 @@ class Detail extends StatelessWidget {
                         Text(
                           'Detail Produk',
                           style: TextStyle(
-                            color: const Color(0xFFFFFEE4),
+                            color: const Color(0xFFFFFFFF),
                             fontSize: r.font(24),
                             fontWeight: FontWeight.w800,
                             fontFamily: 'Inter',
@@ -79,7 +79,7 @@ class Detail extends StatelessWidget {
                               vertical: r.space(10),
                             ),
                             decoration: BoxDecoration(
-                              color: const Color(0xFFD6D2A0),
+                              color: const Color(0xFFEF9A9A),
                               borderRadius: BorderRadius.circular(14),
                               border: Border.all(
                                 color: const Color(0xFF919191),
@@ -161,13 +161,13 @@ class Detail extends StatelessWidget {
                       errorBuilder: (_, _e, __) => const Icon(
                         Icons.inventory_2,
                         size: 64,
-                        color: Color(0xFFBDB76B),
+                        color: Color(0xFFC62828),
                       ),
                     )
                   : const Icon(
                       Icons.inventory_2,
                       size: 64,
-                      color: Color(0xFFBDB76B),
+                      color: Color(0xFFC62828),
                     ),
             ),
           ),
@@ -256,9 +256,9 @@ class Detail extends StatelessWidget {
         margin: EdgeInsets.only(bottom: r.space(16)),
         padding: EdgeInsets.all(r.space(16)),
         decoration: BoxDecoration(
-          color: const Color(0xFFFFFDE3),
+          color: const Color(0xFFFFEBEE),
           borderRadius: BorderRadius.circular(15),
-          border: Border.all(color: const Color(0xFFD6D2A0)),
+          border: Border.all(color: const Color(0xFFEF9A9A)),
         ),
         child: Row(
           children: [
@@ -287,7 +287,7 @@ class Detail extends StatelessWidget {
             Container(
               width: 1,
               height: r.space(40),
-              color: const Color(0xFFD6D2A0),
+              color: const Color(0xFFEF9A9A),
             ),
             Expanded(
               child: Column(
@@ -389,7 +389,7 @@ class Detail extends StatelessWidget {
         vertical: r.space(14),
       ),
       decoration: const BoxDecoration(
-        color: Color(0xFFBDB76B),
+        color: Color(0xFFC62828),
         borderRadius: BorderRadius.only(
           bottomLeft: Radius.circular(24),
           bottomRight: Radius.circular(24),
@@ -408,13 +408,13 @@ class Detail extends StatelessWidget {
                   Text(
                     AppConfig.storeName,
                     style: const TextStyle(
-                      color: Color(0xFFFFFEE4),
+                      color: Color(0xFFFFFFFF),
                       fontWeight: FontWeight.w800,
                     ),
                   ),
                   Text(
                     AppConfig.storeAddress,
-                    style: const TextStyle(color: Color(0xFFFFFEE4)),
+                    style: const TextStyle(color: Color(0xFFFFFFFF)),
                   ),
                 ],
               ),

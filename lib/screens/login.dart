@@ -55,7 +55,7 @@ class Login extends StatelessWidget {
                   width: 557,
                   height: 568,
                   decoration: ShapeDecoration(
-                    color: const Color(0xFFCE8947),
+                    color: const Color(0xFFB71C1C),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10),
                     ),
@@ -82,7 +82,7 @@ class Login extends StatelessWidget {
                   width: 451,
                   height: 66,
                   decoration: ShapeDecoration(
-                    color: const Color(0xFFCE8947),
+                    color: const Color(0xFFB71C1C),
                     shape: RoundedRectangleBorder(
                       side: BorderSide(width: 1, color: Colors.white),
                       borderRadius: BorderRadius.circular(15),
@@ -97,7 +97,7 @@ class Login extends StatelessWidget {
                   width: 451,
                   height: 66,
                   decoration: ShapeDecoration(
-                    color: const Color(0xFFCE8947),
+                    color: const Color(0xFFB71C1C),
                     shape: RoundedRectangleBorder(
                       side: BorderSide(width: 1, color: Colors.white),
                       borderRadius: BorderRadius.circular(15),
@@ -189,7 +189,7 @@ class Login extends StatelessWidget {
                 child: Text(
                   'Login',
                   style: TextStyle(
-                    color: const Color(0xFFCE8947),
+                    color: const Color(0xFFB71C1C),
                     fontSize: 24,
                     fontFamily: 'Inter',
                     fontWeight: FontWeight.w600,
