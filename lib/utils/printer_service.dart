@@ -62,23 +62,27 @@ class PrinterService {
   /// Tidak mengecek koneksi aktif — auto-connect ditangani saat cetak.
   static Future<String> diagnose() async {
     final btOn = await PrintBluetoothThermal.bluetoothEnabled;
-    if (!btOn)
+    if (!btOn) {
       return 'Bluetooth tidak aktif. Aktifkan Bluetooth terlebih dahulu.';
+    }
 
     final mac = await getSavedAddress();
-    if (mac == null || mac.isEmpty)
+    if (mac == null || mac.isEmpty) {
       return 'Belum ada printer yang dipilih. Pilih printer dari daftar di halaman Printer.';
+    }
 
     final devices = await PrintBluetoothThermal.pairedBluetooths.timeout(
       const Duration(seconds: 10),
       onTimeout: () => [],
     );
-    if (devices.isEmpty)
+    if (devices.isEmpty) {
       return 'Daftar perangkat paired kosong. Pastikan izin Bluetooth (Nearby Devices) sudah diberikan dan Bluetooth aktif.';
+    }
 
     final found = devices.any((d) => d.macAdress == mac);
-    if (!found)
+    if (!found) {
       return 'Printer ($mac) tidak ditemukan di daftar paired. Pastikan sudah di-pair di Pengaturan Bluetooth HP.';
+    }
 
     return 'OK';
   }
@@ -101,22 +105,26 @@ class PrinterService {
   }) async {
     try {
       final btOn = await PrintBluetoothThermal.bluetoothEnabled;
-      if (!btOn) return (ok: false, error: 'Bluetooth tidak aktif');
+      if (!btOn) {
+        return (ok: false, error: 'Bluetooth tidak aktif');
+      }
 
       final mac = await getSavedAddress();
-      if (mac == null || mac.isEmpty)
+      if (mac == null || mac.isEmpty) {
         return (ok: false, error: 'Belum ada printer dipilih');
+      }
 
       final alreadyConnected = await PrintBluetoothThermal.connectionStatus;
       if (!alreadyConnected) {
         final ok = await connect(mac); // pakai method dengan timeout 15s
-        if (!ok)
+        if (!ok) {
           return (
             ok: false,
             error: lastError.isNotEmpty
                 ? lastError
                 : 'Gagal konek ke printer ($mac). Pastikan printer menyala dan dalam jangkauan.',
           );
+        }
         // Tunggu printer siap menerima data setelah koneksi
         await Future<void>.delayed(const Duration(milliseconds: 800));
       }
@@ -172,12 +180,13 @@ class PrinterService {
         }
       }
 
-      if (!written)
+      if (!written) {
         return (
           ok: false,
           error:
               'Printer terhubung tapi gagal mengirim data. Coba:\n1. Matikan/nyalakan printer\n2. Pastikan kertas terpasang\n3. Putuskan & hubungkan ulang',
         );
+      }
       return (ok: true, error: '');
     } catch (e) {
       lastError = e.toString();

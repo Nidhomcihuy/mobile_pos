@@ -511,39 +511,38 @@ class _PrinterScreenState extends State<PrinterScreen> {
                         setState(() => _isLoading = true);
                         final msg = await PrinterService.diagnose();
                         setState(() => _isLoading = false);
-                        if (mounted) {
-                          showDialog(
-                            context: context,
-                            builder: (_) => AlertDialog(
-                              title: Row(
-                                children: [
-                                  Icon(
-                                    msg == 'OK'
-                                        ? Icons.check_circle
-                                        : Icons.info_outline,
-                                    color: msg == 'OK'
-                                        ? Colors.green
-                                        : Colors.orange,
-                                  ),
-                                  const SizedBox(width: 8),
-                                  const Text('Diagnosa Printer'),
-                                ],
-                              ),
-                              content: Text(
-                                msg == 'OK'
-                                    ? 'Semua kondisi printer OK. Siap cetak!'
-                                    : msg,
-                                style: const TextStyle(fontFamily: 'Inter'),
-                              ),
-                              actions: [
-                                TextButton(
-                                  onPressed: () => Navigator.pop(context),
-                                  child: const Text('OK'),
+                        if (!context.mounted) return;
+                        showDialog(
+                          context: context,
+                          builder: (_) => AlertDialog(
+                            title: Row(
+                              children: [
+                                Icon(
+                                  msg == 'OK'
+                                      ? Icons.check_circle
+                                      : Icons.info_outline,
+                                  color: msg == 'OK'
+                                      ? Colors.green
+                                      : Colors.orange,
                                 ),
+                                const SizedBox(width: 8),
+                                const Text('Diagnosa Printer'),
                               ],
                             ),
-                          );
-                        }
+                            content: Text(
+                              msg == 'OK'
+                                  ? 'Semua kondisi printer OK. Siap cetak!'
+                                  : msg,
+                              style: const TextStyle(fontFamily: 'Inter'),
+                            ),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.pop(context),
+                                child: const Text('OK'),
+                              ),
+                            ],
+                          ),
+                        );
                       },
                 icon: const Icon(Icons.medical_services_outlined),
                 label: const Text(

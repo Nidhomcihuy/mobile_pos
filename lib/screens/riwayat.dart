@@ -346,7 +346,7 @@ class _RiwayatState extends State<Riwayat> {
                 border: Border.all(color: const Color(0xFFEF9A9A)),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
+                    color: Colors.black.withValues(alpha: 0.05),
                     blurRadius: 10,
                   ),
                 ],
@@ -372,7 +372,9 @@ class _RiwayatState extends State<Riwayat> {
                                 ),
                                 child: DataTable(
                                   headingRowColor: WidgetStateProperty.all(
-                                    const Color(0xFFC62828).withOpacity(0.2),
+                                    const Color(
+                                      0xFFC62828,
+                                    ).withValues(alpha: 0.2),
                                   ),
                                   columnSpacing: r.space(35),
                                   columns: const [
@@ -622,7 +624,7 @@ class _RiwayatState extends State<Riwayat> {
                 borderRadius: BorderRadius.circular(14),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
+                    color: Colors.black.withValues(alpha: 0.1),
                     blurRadius: 8,
                     offset: const Offset(0, 2),
                   ),
@@ -711,18 +713,19 @@ class _RiwayatState extends State<Riwayat> {
               padding: const EdgeInsets.symmetric(horizontal: 4),
               child: InkWell(
                 onTap: () {
-                  if (!isSelected)
+                  if (!isSelected) {
                     Navigator.pushReplacementNamed(
                       context,
                       '/${navItems[index].toLowerCase()}',
                     );
+                  }
                 },
                 borderRadius: BorderRadius.circular(10),
                 child: Container(
                   padding: EdgeInsets.symmetric(vertical: r.space(10)),
                   decoration: BoxDecoration(
                     color: isSelected
-                        ? const Color(0xFFFFFFFF).withOpacity(0.25)
+                        ? const Color(0xFFFFFFFF).withValues(alpha: 0.25)
                         : Colors.transparent,
                     borderRadius: BorderRadius.circular(10),
                   ),

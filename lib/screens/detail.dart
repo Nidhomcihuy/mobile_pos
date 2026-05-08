@@ -158,7 +158,7 @@ class Detail extends StatelessWidget {
                   ? Image.network(
                       imageUrl,
                       fit: BoxFit.contain,
-                      errorBuilder: (_, _e, __) => const Icon(
+                      errorBuilder: (_, e, _) => const Icon(
                         Icons.inventory_2,
                         size: 64,
                         color: Color(0xFFC62828),

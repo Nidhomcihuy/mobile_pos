@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'screens/login.dart';
 import 'screens/dashboard.dart';
 import 'screens/kasir.dart';
 import 'screens/riwayat.dart';
@@ -11,11 +13,21 @@ import 'utils/app_config.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await AppConfig.init();
-  runApp(const MyApp());
+
+  // Cek token tersimpan — jika ada, langsung ke dashboard
+  final prefs = await SharedPreferences.getInstance();
+  final token = prefs.getString('auth_token') ?? '';
+  final initialRoute = token.isNotEmpty ? '/dashboard' : '/login';
+
+  // Restore nama kasir jika sudah login sebelumnya
+  AppConfig.cashierName = prefs.getString('user_name') ?? '';
+
+  runApp(MyApp(initialRoute: initialRoute));
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  final String initialRoute;
+  const MyApp({super.key, required this.initialRoute});
 
   @override
   Widget build(BuildContext context) {
@@ -26,8 +38,9 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFFC62828)),
         fontFamily: 'Inter',
       ),
-      initialRoute: '/dashboard',
+      initialRoute: initialRoute,
       routes: {
+        '/login': (context) => const Login(),
         '/dashboard': (context) => const Dashboard(),
         '/kasir': (context) => const Kasir(),
         '/riwayat': (context) => const Riwayat(),

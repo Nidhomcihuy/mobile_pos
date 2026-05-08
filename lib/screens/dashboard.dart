@@ -287,11 +287,12 @@ class _DashboardState extends State<Dashboard> {
               padding: const EdgeInsets.symmetric(horizontal: 4),
               child: InkWell(
                 onTap: () {
-                  if (!isSelected)
+                  if (!isSelected) {
                     Navigator.pushReplacementNamed(
                       context,
                       '/${navItems[index].toLowerCase()}',
                     );
+                  }
                 },
                 borderRadius: BorderRadius.circular(10),
                 child: Container(
@@ -426,10 +427,11 @@ class _DashboardState extends State<Dashboard> {
   }
 
   Widget _buildProductGrid(Responsive r) {
-    if (_isLoading)
+    if (_isLoading) {
       return const Center(
         child: CircularProgressIndicator(color: Color(0xFFC62828)),
       );
+    }
     final products = _filteredProducts;
     return GridView.builder(
       padding: EdgeInsets.only(bottom: r.space(20)),

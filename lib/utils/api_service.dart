@@ -89,4 +89,43 @@ class ApiService {
       body['message'] ?? 'Transaksi gagal (${response.statusCode})',
     );
   }
+
+  // ─── Auth ─────────────────────────────────────────────────────────────────
+
+  /// Login kasir. Mengembalikan map dengan key `token` dan `user`.
+  static Future<Map<String, dynamic>> login({
+    required String email,
+    required String password,
+  }) async {
+    final response = await http
+        .post(
+          Uri.parse('$_baseUrl/auth/login'),
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+          },
+          body: jsonEncode({'email': email, 'password': password}),
+        )
+        .timeout(const Duration(seconds: 15));
+
+    final body = jsonDecode(response.body) as Map<String, dynamic>;
+
+    if (response.statusCode == 200 && body['success'] == true) {
+      return body;
+    }
+    throw Exception(body['message'] ?? 'Login gagal (${response.statusCode})');
+  }
+
+  /// Logout — hapus token di server.
+  static Future<void> logout(String token) async {
+    await http
+        .post(
+          Uri.parse('$_baseUrl/auth/logout'),
+          headers: {
+            'Accept': 'application/json',
+            'Authorization': 'Bearer $token',
+          },
+        )
+        .timeout(const Duration(seconds: 10));
+  }
 }

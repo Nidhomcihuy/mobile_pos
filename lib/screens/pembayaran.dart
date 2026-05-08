@@ -672,9 +672,37 @@ class _PembayaranState extends State<Pembayaran> {
           TextField(
             controller: _cashController,
             keyboardType: TextInputType.number,
-            decoration: const InputDecoration(
+            style: const TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.bold,
+              color: Colors.black,
+            ),
+            decoration: InputDecoration(
               labelText: 'UANG DIBAYAR (CASH)',
+              labelStyle: const TextStyle(color: Color(0xFFC62828)),
               prefixText: 'Rp ',
+              prefixStyle: const TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+                color: Colors.black,
+              ),
+              filled: true,
+              fillColor: const Color(0xFFFFF8F8),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+                borderSide: const BorderSide(color: Color(0xFFEF9A9A)),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+                borderSide: const BorderSide(color: Color(0xFFEF9A9A)),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+                borderSide: const BorderSide(
+                  color: Color(0xFFC62828),
+                  width: 2,
+                ),
+              ),
             ),
             onChanged: (_) => _calculateChange(subtotal),
           ),
