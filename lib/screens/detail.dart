@@ -248,6 +248,7 @@ class Detail extends StatelessWidget {
   Widget _buildDateSection(Responsive r, Map<String, dynamic> product) {
     final category = (product['category'] ?? '-').toString();
     final minStock = (product['min_stock'] ?? 0).toString();
+    final unit = (product['unit'] ?? 'pcs').toString();
     final stock = (product['stock'] ?? 0) as num;
     final isLow = stock <= (product['min_stock'] ?? 0);
     return Padding(
@@ -302,7 +303,7 @@ class Detail extends StatelessWidget {
                   ),
                   SizedBox(height: r.space(4)),
                   Text(
-                    minStock,
+                    '$minStock $unit',
                     style: TextStyle(
                       fontSize: r.font(16),
                       fontWeight: FontWeight.bold,
@@ -321,6 +322,7 @@ class Detail extends StatelessWidget {
   Widget _buildLocationSection(Responsive r, Map<String, dynamic> product) {
     final stock = (product['stock'] ?? 0) as num;
     final minStock = (product['min_stock'] ?? 0) as num;
+    final unit = (product['unit'] ?? 'pcs').toString();
     final isLow = stock <= minStock;
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: r.space(24)),
@@ -358,7 +360,7 @@ class Detail extends StatelessWidget {
                   ),
                   SizedBox(height: r.space(4)),
                   Text(
-                    'Sisa stok: $stock pcs',
+                    'Sisa stok: $stock $unit',
                     style: TextStyle(
                       color: Colors.black,
                       fontSize: r.font(20),
@@ -366,7 +368,7 @@ class Detail extends StatelessWidget {
                     ),
                   ),
                   Text(
-                    'Batas minimum: $minStock pcs',
+                    'Batas minimum: $minStock $unit',
                     style: TextStyle(
                       color: Colors.black54,
                       fontSize: r.font(14),
