@@ -40,6 +40,7 @@ dependencies:
   shared_preferences: ^2.3.0 # Simpan alamat MAC printer yang dipilih
   permission_handler: ^11.3.1 # Request izin Bluetooth runtime (Android 12+)
   path_provider: ^2.1.5 # Akses temp directory
+  mobile_scanner: ^6.0.0 # Scan barcode/QR dengan kamera
 
 dev_dependencies:
   flutter_test:

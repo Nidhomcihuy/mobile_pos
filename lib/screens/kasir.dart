@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:mobile_scanner/mobile_scanner.dart';
 import '../utils/responsive_helper.dart';
 import '../utils/api_service.dart';
 import '../utils/app_config.dart';
@@ -289,6 +290,56 @@ class _KasirState extends State<Kasir> {
     );
   }
 
+  Future<void> _openScanner() async {
+    final scanned = await Navigator.push<String>(
+      context,
+      MaterialPageRoute(builder: (_) => const _BarcodeScannerScreen()),
+    );
+    if (scanned == null || scanned.isEmpty) return;
+
+    // Cari produk berdasarkan SKU atau nama
+    final found = _products.firstWhere(
+      (p) =>
+          (p['sku'] as String?)?.toLowerCase() == scanned.toLowerCase() ||
+          (p['name'] as String).toLowerCase().contains(scanned.toLowerCase()),
+      orElse: () => {},
+    );
+
+    if (found.isEmpty) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Produk "$scanned" tidak ditemukan'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    final name = found['name'] as String;
+    setState(() {
+      if (_cart.containsKey(name)) {
+        _cart[name]!['quantity'] = (_cart[name]!['quantity'] as int) + 1;
+      } else {
+        _cart[name] = {
+          'id': found['id'],
+          'name': name,
+          'price': found['price'],
+          'quantity': 1,
+        };
+      }
+    });
+
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('"$name" ditambahkan ke keranjang'),
+        backgroundColor: Colors.green,
+        duration: const Duration(seconds: 1),
+      ),
+    );
+  }
+
   Widget _buildSearchBar(Responsive r) {
     return Row(
       children: [
@@ -323,25 +374,20 @@ class _KasirState extends State<Kasir> {
           ),
         ),
         SizedBox(width: r.space(10)),
+        // Tombol scan barcode
         InkWell(
-          onTap: () {},
+          onTap: _openScanner,
+          borderRadius: BorderRadius.circular(10),
           child: Container(
-            padding: EdgeInsets.symmetric(
-              horizontal: r.space(22),
-              vertical: r.space(12),
-            ),
+            padding: EdgeInsets.all(r.space(12)),
             decoration: BoxDecoration(
               color: const Color(0xFFB71C1C),
               borderRadius: BorderRadius.circular(10),
             ),
-            child: Text(
-              'cari',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: r.font(16),
-                fontWeight: FontWeight.w500,
-                fontFamily: 'Inter',
-              ),
+            child: Icon(
+              Icons.qr_code_scanner,
+              color: Colors.white,
+              size: r.icon(24),
             ),
           ),
         ),
@@ -437,15 +483,30 @@ class _KasirState extends State<Kasir> {
             flex: 3,
             child: Padding(
               padding: EdgeInsets.all(r.space(12)),
-              child: Image.network(
-                product['image_url'] ?? '',
-                fit: BoxFit.contain,
-                errorBuilder: (_, _, _) => const Icon(
-                  Icons.inventory_2,
-                  size: 48,
-                  color: Color(0xFFC62828),
-                ),
-              ),
+              child: product['image_url'] != null
+                  ? Image.network(
+                      product['image_url'] as String,
+                      fit: BoxFit.contain,
+                      loadingBuilder: (context, child, loadingProgress) {
+                        if (loadingProgress == null) return child;
+                        return const Center(
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Color(0xFFC62828),
+                          ),
+                        );
+                      },
+                      errorBuilder: (context, error, stackTrace) => const Icon(
+                        Icons.inventory_2,
+                        size: 48,
+                        color: Color(0xFFC62828),
+                      ),
+                    )
+                  : const Icon(
+                      Icons.inventory_2,
+                      size: 48,
+                      color: Color(0xFFC62828),
+                    ),
             ),
           ),
           Text(
@@ -569,6 +630,94 @@ class _KasirState extends State<Kasir> {
                   ),
           ),
           SizedBox(height: r.space(10)),
+        ],
+      ),
+    );
+  }
+}
+
+// ── Barcode Scanner Screen ─────────────────────────────────────────────────
+class _BarcodeScannerScreen extends StatefulWidget {
+  const _BarcodeScannerScreen();
+
+  @override
+  State<_BarcodeScannerScreen> createState() => _BarcodeScannerScreenState();
+}
+
+class _BarcodeScannerScreenState extends State<_BarcodeScannerScreen> {
+  bool _scanned = false;
+  final MobileScannerController _ctrl = MobileScannerController(
+    detectionSpeed: DetectionSpeed.noDuplicates,
+  );
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.black,
+      appBar: AppBar(
+        backgroundColor: const Color(0xFFC62828),
+        foregroundColor: Colors.white,
+        title: const Text(
+          'Scan Barcode Produk',
+          style: TextStyle(fontFamily: 'Inter', fontWeight: FontWeight.w700),
+        ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.flash_on),
+            tooltip: 'Flash',
+            onPressed: () => _ctrl.toggleTorch(),
+          ),
+          IconButton(
+            icon: const Icon(Icons.cameraswitch),
+            tooltip: 'Ganti Kamera',
+            onPressed: () => _ctrl.switchCamera(),
+          ),
+        ],
+      ),
+      body: Stack(
+        children: [
+          MobileScanner(
+            controller: _ctrl,
+            onDetect: (capture) {
+              if (_scanned) return;
+              final barcode = capture.barcodes.firstOrNull;
+              final raw = barcode?.rawValue;
+              if (raw == null || raw.isEmpty) return;
+              _scanned = true;
+              Navigator.pop(context, raw);
+            },
+          ),
+          // Overlay viewfinder
+          Center(
+            child: Container(
+              width: 260,
+              height: 160,
+              decoration: BoxDecoration(
+                border: Border.all(color: const Color(0xFFE53935), width: 3),
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+          ),
+          Positioned(
+            bottom: 40,
+            left: 0,
+            right: 0,
+            child: const Text(
+              'Arahkan kamera ke barcode produk',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 14,
+                fontFamily: 'Inter',
+              ),
+            ),
+          ),
         ],
       ),
     );

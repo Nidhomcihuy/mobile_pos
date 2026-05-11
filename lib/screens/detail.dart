@@ -137,8 +137,8 @@ class Detail extends StatelessWidget {
       width: double.infinity,
       padding: EdgeInsets.all(r.space(24)),
       decoration: const BoxDecoration(
-        color: Color(0xFFFDF5D8),
-        border: Border(bottom: BorderSide(color: Color(0x7FD8B84B), width: 2)),
+        color: Color(0xFFFFEBEE),
+        border: Border(bottom: BorderSide(color: Color(0xFFEF9A9A), width: 2)),
       ),
       child: Column(
         children: [
@@ -214,9 +214,9 @@ class Detail extends StatelessWidget {
       child: Container(
         padding: EdgeInsets.all(r.space(12)),
         decoration: BoxDecoration(
-          color: const Color(0xFFFDF5D8),
+          color: const Color(0xFFFFEBEE),
           borderRadius: BorderRadius.circular(15),
-          border: Border.all(color: const Color(0x7FD8B84B)),
+          border: Border.all(color: const Color(0xFFEF9A9A)),
         ),
         child: Column(
           children: [

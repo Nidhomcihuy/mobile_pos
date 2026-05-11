@@ -605,7 +605,7 @@ class _PembayaranState extends State<Pembayaran> {
                               vertical: 6,
                             ),
                             child: Icon(
-                              qty == 1 ? Icons.delete_outline : Icons.remove,
+                              qty == 1 ? Icons.delete : Icons.remove,
                               color: Colors.white,
                               size: 16,
                             ),
