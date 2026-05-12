@@ -710,16 +710,46 @@ class _PembayaranState extends State<Pembayaran> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text('KEMBALIAN:'),
               Text(
-                _formatPrice(_change),
-                style: const TextStyle(
+                _change < 0 ? 'KURANG BAYAR:' : 'KEMBALIAN:',
+                style: TextStyle(
                   fontWeight: FontWeight.bold,
-                  color: Colors.green,
+                  color: _change < 0 ? Colors.red : Colors.black87,
+                ),
+              ),
+              Text(
+                _change < 0
+                    ? '- ${_formatPrice(-_change)}'
+                    : _formatPrice(_change),
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: _change < 0 ? Colors.red : Colors.green,
                 ),
               ),
             ],
           ),
+          if (_change < 0)
+            Padding(
+              padding: const EdgeInsets.only(top: 6),
+              child: Row(
+                children: [
+                  const Icon(
+                    Icons.warning_amber_rounded,
+                    color: Colors.red,
+                    size: 16,
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    'Uang yang dibayar tidak mencukupi!',
+                    style: TextStyle(
+                      color: Colors.red,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+            ),
         ],
       ),
     );
@@ -790,6 +820,15 @@ class _PembayaranState extends State<Pembayaran> {
                       : () {
                           if (!_isCashMode && !_isQRMode) {
                             _showPaymentOptions(subtotal, r);
+                          } else if (_isCashMode && _change < 0) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text(
+                                  'Pembayaran kurang! Harap lengkapi jumlah bayar.',
+                                ),
+                                backgroundColor: Colors.red,
+                              ),
+                            );
                           } else if (!_isProcessing) {
                             final cash =
                                 int.tryParse(
@@ -800,7 +839,9 @@ class _PembayaranState extends State<Pembayaran> {
                           }
                         },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFE53935),
+                    backgroundColor: _isCashMode && _change < 0
+                        ? Colors.grey
+                        : const Color(0xFFE53935),
                   ),
                   child: _isProcessing
                       ? const SizedBox(
@@ -811,9 +852,7 @@ class _PembayaranState extends State<Pembayaran> {
                             color: Colors.white,
                           ),
                         )
-                      : Text(
-                          _isCashMode || _isQRMode ? 'CETAK STRUK' : 'BAYAR',
-                        ),
+                      : Text(_isCashMode || _isQRMode ? 'SELESAIKAN' : 'BAYAR'),
                 ),
               ),
               SizedBox(width: 12),
