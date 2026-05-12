@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../utils/responsive_helper.dart';
 import '../utils/api_service.dart';
 import '../utils/app_config.dart';
@@ -280,48 +281,63 @@ class _DashboardState extends State<Dashboard> {
         borderRadius: BorderRadius.circular(14),
       ),
       child: Row(
-        children: List.generate(navItems.length, (index) {
-          final isSelected = index == selectedIndex;
-          return Expanded(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 4),
-              child: InkWell(
-                onTap: () {
-                  if (!isSelected) {
-                    Navigator.pushReplacementNamed(
-                      context,
-                      '/${navItems[index].toLowerCase()}',
-                    );
-                  }
-                },
-                borderRadius: BorderRadius.circular(10),
-                child: Container(
-                  padding: EdgeInsets.symmetric(vertical: r.space(10)),
-                  decoration: BoxDecoration(
-                    color: isSelected
-                        ? const Color(0xFFFFFFFF).withValues(alpha: 0.25)
-                        : Colors.transparent,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  alignment: Alignment.center,
-                  child: Text(
-                    navItems[index],
-                    style: TextStyle(
+        children: [
+          ...List.generate(navItems.length, (index) {
+            final isSelected = index == selectedIndex;
+            return Expanded(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 4),
+                child: InkWell(
+                  onTap: () {
+                    if (!isSelected) {
+                      Navigator.pushReplacementNamed(
+                        context,
+                        '/${navItems[index].toLowerCase()}',
+                      );
+                    }
+                  },
+                  borderRadius: BorderRadius.circular(10),
+                  child: Container(
+                    padding: EdgeInsets.symmetric(vertical: r.space(10)),
+                    decoration: BoxDecoration(
                       color: isSelected
-                          ? const Color(0xFFFFFFFF)
-                          : Colors.black87,
-                      fontSize: r.font(16),
-                      fontWeight: isSelected
-                          ? FontWeight.w600
-                          : FontWeight.w400,
-                      fontFamily: 'Inter',
+                          ? const Color(0xFFFFFFFF).withValues(alpha: 0.25)
+                          : Colors.transparent,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    alignment: Alignment.center,
+                    child: Text(
+                      navItems[index],
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: r.font(16),
+                        fontWeight: isSelected
+                            ? FontWeight.w600
+                            : FontWeight.w400,
+                        fontFamily: 'Inter',
+                      ),
                     ),
                   ),
                 ),
               ),
-            ),
-          );
-        }),
+            );
+          }),
+          IconButton(
+            icon: const Icon(Icons.logout, color: Colors.white),
+            tooltip: 'Logout',
+            onPressed: () async {
+              final prefs = await SharedPreferences.getInstance();
+              final token = prefs.getString('auth_token') ?? '';
+              try {
+                await ApiService.logout(token);
+              } catch (_) {}
+              await prefs.remove('auth_token');
+              if (context.mounted) {
+                Navigator.pushReplacementNamed(context, '/login');
+              }
+            },
+          ),
+        ],
       ),
     );
   }
