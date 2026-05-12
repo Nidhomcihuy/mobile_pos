@@ -317,11 +317,13 @@ class _KasirState extends State<Kasir> {
     }
 
     final name = found['name'] as String;
+    final String scannedKey = found['id']?.toString() ?? name;
     setState(() {
-      if (_cart.containsKey(name)) {
-        _cart[name]!['quantity'] = (_cart[name]!['quantity'] as int) + 1;
+      if (_cart.containsKey(scannedKey)) {
+        _cart[scannedKey]!['quantity'] =
+            (_cart[scannedKey]!['quantity'] as int) + 1;
       } else {
-        _cart[name] = {
+        _cart[scannedKey] = {
           'id': found['id'],
           'name': name,
           'price': found['price'],
@@ -457,9 +459,10 @@ class _KasirState extends State<Kasir> {
 
   Widget _buildProductCard(Map<String, dynamic> product, Responsive r) {
     final String productName = (product['name'] ?? '').toString();
-    final int quantity = productName.isEmpty
+    final String cartKey = product['id']?.toString() ?? '';
+    final int quantity = cartKey.isEmpty
         ? 0
-        : (_cart[productName]?['quantity'] ?? 0);
+        : (_cart[cartKey]?['quantity'] ?? 0);
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -546,7 +549,7 @@ class _KasirState extends State<Kasir> {
                     child: ElevatedButton(
                       onPressed: () {
                         setState(() {
-                          _cart[productName] = {
+                          _cart[cartKey] = {
                             'id': product['id'],
                             'name': product['name'],
                             'price': product['price'],
@@ -591,10 +594,10 @@ class _KasirState extends State<Kasir> {
                           ),
                           onPressed: () {
                             setState(() {
-                              if (_cart[productName]!['quantity'] > 1) {
-                                _cart[productName]!['quantity']--;
+                              if (_cart[cartKey]!['quantity'] > 1) {
+                                _cart[cartKey]!['quantity']--;
                               } else {
-                                _cart.remove(productName);
+                                _cart.remove(cartKey);
                               }
                             });
                           },
@@ -618,9 +621,9 @@ class _KasirState extends State<Kasir> {
                           ),
                           onPressed: () {
                             setState(() {
-                              if (_cart[productName]!['quantity'] <
+                              if (_cart[cartKey]!['quantity'] <
                                   product['stock']) {
-                                _cart[productName]!['quantity']++;
+                                _cart[cartKey]!['quantity']++;
                               }
                             });
                           },
