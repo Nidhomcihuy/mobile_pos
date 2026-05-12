@@ -358,10 +358,9 @@ class _PembayaranState extends State<Pembayaran> {
                                 subtotal: subtotal.toDouble(),
                                 tax: 0.0,
                                 total: subtotal.toDouble(),
-                                paid: cash > 0
-                                    ? cash.toDouble()
-                                    : subtotal.toDouble(),
-                                change: change.toDouble(),
+                                paid: subtotal.toDouble(),
+                                change: _isQRMode ? 0.0 : change.toDouble(),
+                                note: _isQRMode ? 'NON TUNAI (LUNAS)' : null,
                                 storeAddress: AppConfig.storeAddress,
                               );
                             } catch (e) {
@@ -847,59 +846,63 @@ class _PembayaranState extends State<Pembayaran> {
 
   Widget _buildQRView(Responsive r) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       color: Colors.white,
       width: double.infinity,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: [
           Text(
             'PEMBAYARAN NON TUNAI',
             style: TextStyle(
               fontWeight: FontWeight.bold,
-              fontSize: r.font(14),
+              fontSize: r.font(13),
               color: const Color(0xFFB71C1C),
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 6),
           // Preview foto jika sudah dipilih
           if (_qrProofImage != null) ...[
             ClipRRect(
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(6),
               child: Image.file(
                 File(_qrProofImage!.path),
-                height: 120,
+                height: 72,
                 width: double.infinity,
                 fit: BoxFit.cover,
               ),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 4),
             const Text(
               'Foto bukti bayar dipilih ✓',
               style: TextStyle(
                 color: Colors.green,
-                fontSize: 12,
+                fontSize: 11,
                 fontWeight: FontWeight.w600,
               ),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 6),
           ] else ...[
             const Text(
               'Upload foto bukti pembayaran (opsional)',
-              style: TextStyle(fontSize: 12, color: Colors.grey),
+              style: TextStyle(fontSize: 11, color: Colors.grey),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 6),
           ],
           Row(
             children: [
               Expanded(
                 child: OutlinedButton.icon(
                   onPressed: () => _pickProofImage(ImageSource.camera),
-                  icon: const Icon(Icons.camera_alt, size: 16),
-                  label: const Text('Kamera'),
+                  icon: const Icon(Icons.camera_alt, size: 14),
+                  label: const Text('Kamera', style: TextStyle(fontSize: 12)),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: const Color(0xFFB71C1C),
                     side: const BorderSide(color: Color(0xFFB71C1C)),
+                    padding: const EdgeInsets.symmetric(vertical: 6),
+                    minimumSize: Size.zero,
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                   ),
                 ),
               ),
@@ -907,11 +910,14 @@ class _PembayaranState extends State<Pembayaran> {
               Expanded(
                 child: OutlinedButton.icon(
                   onPressed: () => _pickProofImage(ImageSource.gallery),
-                  icon: const Icon(Icons.photo_library, size: 16),
-                  label: const Text('Galeri'),
+                  icon: const Icon(Icons.photo_library, size: 14),
+                  label: const Text('Galeri', style: TextStyle(fontSize: 12)),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: const Color(0xFFB71C1C),
                     side: const BorderSide(color: Color(0xFFB71C1C)),
+                    padding: const EdgeInsets.symmetric(vertical: 6),
+                    minimumSize: Size.zero,
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                   ),
                 ),
               ),

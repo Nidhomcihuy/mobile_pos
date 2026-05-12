@@ -345,14 +345,16 @@ class PrinterService {
           styles: const PosStyles(align: PosAlign.right),
         ),
       ]);
-      bytes += generator.row([
-        PosColumn(text: 'Kembali', width: 6),
-        PosColumn(
-          text: _formatRp(change),
-          width: 6,
-          styles: const PosStyles(align: PosAlign.right),
-        ),
-      ]);
+      if (change > 0) {
+        bytes += generator.row([
+          PosColumn(text: 'Kembali', width: 6),
+          PosColumn(
+            text: _formatRp(change),
+            width: 6,
+            styles: const PosStyles(align: PosAlign.right),
+          ),
+        ]);
+      }
     }
     bytes += generator.hr();
 
