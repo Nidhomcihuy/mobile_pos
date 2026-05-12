@@ -208,7 +208,7 @@ class _PembayaranState extends State<Pembayaran> {
     try {
       final result = await ApiService.createTransaction(
         items: apiItems,
-        paidAmount: cash,
+        paidAmount: _isQRMode ? subtotal : cash,
         paymentMethod: paymentMethod,
         proofImagePath: _isQRMode ? _qrProofImage?.path : null,
       );
