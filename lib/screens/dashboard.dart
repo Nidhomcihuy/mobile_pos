@@ -144,6 +144,59 @@ class _DashboardState extends State<Dashboard> {
     }).toList();
   }
 
+  /// Parses expiry string — supports dd/MM/yyyy and ISO (yyyy-MM-dd) formats.
+  DateTime _parseExpiry(String? val) {
+    if (val == null || val.isEmpty) return DateTime(9999);
+    final parts = val.split('/');
+    if (parts.length == 3) {
+      try {
+        return DateTime(
+          int.parse(parts[2]),
+          int.parse(parts[1]),
+          int.parse(parts[0]),
+        );
+      } catch (_) {}
+    }
+    try {
+      return DateTime.parse(val);
+    } catch (_) {}
+    return DateTime(9999);
+  }
+
+  /// Menggabungkan produk dengan nama & harga sama (beda batch/kadaluarsa)
+  /// menjadi 1 kartu. Stok dijumlah, kadaluarsa yang ditampilkan = paling dekat (FIFO).
+  List<Map<String, dynamic>> get _groupedFilteredProducts {
+    final Map<String, Map<String, dynamic>> groups = {};
+    for (final p in _filteredProducts) {
+      final name = (p['name'] ?? '').toString();
+      final price = (p['price'] as num).toInt();
+      final ukuran = (p['ukuran'] ?? '').toString();
+      final satuan = (p['satuan'] ?? '').toString();
+      final key = '${name}__${price}__${ukuran}__$satuan';
+      if (!groups.containsKey(key)) {
+        groups[key] = Map<String, dynamic>.from(p)..['stock'] = 0;
+      }
+      groups[key]!['stock'] =
+          (groups[key]!['stock'] as int) + (p['stock'] as int);
+      // Simpan kadaluarsa terdekat (FIFO)
+      final existingExpiry = _parseExpiry(
+        (groups[key]!['expires_at'] ?? groups[key]!['kadaluarsa']) as String?,
+      );
+      final newExpiry = _parseExpiry(
+        (p['expires_at'] ?? p['kadaluarsa']) as String?,
+      );
+      if (newExpiry.isBefore(existingExpiry)) {
+        if (p.containsKey('expires_at')) {
+          groups[key]!['expires_at'] = p['expires_at'];
+        }
+        if (p.containsKey('kadaluarsa')) {
+          groups[key]!['kadaluarsa'] = p['kadaluarsa'];
+        }
+      }
+    }
+    return groups.values.toList();
+  }
+
   @override
   Widget build(BuildContext context) {
     final r = Responsive.of(context);
@@ -448,7 +501,7 @@ class _DashboardState extends State<Dashboard> {
         child: CircularProgressIndicator(color: Color(0xFFC62828)),
       );
     }
-    final products = _filteredProducts;
+    final products = _groupedFilteredProducts;
     return GridView.builder(
       padding: EdgeInsets.only(bottom: r.space(20)),
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
@@ -463,93 +516,145 @@ class _DashboardState extends State<Dashboard> {
   }
 
   Widget _buildProductCard(Map<String, dynamic> product, Responsive r) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(
-          color: const Color(0xFFE53935).withValues(alpha: 0.4),
-          width: 1.5,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFFE53935).withValues(alpha: 0.08),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Expanded(
-            flex: 3,
-            child: Padding(
-              padding: EdgeInsets.all(r.space(12)),
-              child: () {
-                final localPath = product['image'] as String?;
-                final networkUrl = product['image_url'] as String?;
-                if (localPath != null && localPath.isNotEmpty) {
-                  return Image.asset(
-                    localPath,
-                    fit: BoxFit.contain,
-                    errorBuilder: (_, _, _) =>
-                        _networkOrPlaceholder(networkUrl),
-                  );
-                }
-                return _networkOrPlaceholder(networkUrl);
-              }(),
+    final int stock = (product['stock'] as num? ?? 0).toInt();
+    final int minStock = (product['min_stock'] as num? ?? 0).toInt();
+    final bool isLowStock = stock <= minStock && minStock > 0;
+
+    return Stack(
+      children: [
+        Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(
+              color: isLowStock
+                  ? Colors.orange.withValues(alpha: 0.8)
+                  : const Color(0xFFE53935).withValues(alpha: 0.4),
+              width: isLowStock ? 2.0 : 1.5,
             ),
+            boxShadow: [
+              BoxShadow(
+                color: isLowStock
+                    ? Colors.orange.withValues(alpha: 0.15)
+                    : const Color(0xFFE53935).withValues(alpha: 0.08),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              ),
+            ],
           ),
-          Text(
-            product['name'],
-            style: TextStyle(
-              color: Colors.black,
-              fontSize: r.font(13),
-              fontWeight: FontWeight.bold,
-            ),
-            textAlign: TextAlign.center,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-          Text(
-            _formatPrice(product['price']),
-            style: TextStyle(
-              color: const Color(0xFF1D1B1B),
-              fontSize: r.font(12),
-            ),
-          ),
-          Text(
-            'Stok: ${product['stock']}',
-            style: TextStyle(
-              color: const Color(0xFF1D1B1B),
-              fontSize: r.font(12),
-            ),
-          ),
-          SizedBox(height: r.space(8)),
-          Padding(
-            padding: EdgeInsets.symmetric(horizontal: r.space(12)),
-            child: SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () =>
-                    Navigator.pushNamed(context, '/detail', arguments: product),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFE53935),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(20),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Expanded(
+                flex: 3,
+                child: Padding(
+                  padding: EdgeInsets.all(r.space(12)),
+                  child: () {
+                    final localPath = product['image'] as String?;
+                    final networkUrl = product['image_url'] as String?;
+                    if (localPath != null && localPath.isNotEmpty) {
+                      return Image.asset(
+                        localPath,
+                        fit: BoxFit.contain,
+                        errorBuilder: (_, _, _) =>
+                            _networkOrPlaceholder(networkUrl),
+                      );
+                    }
+                    return _networkOrPlaceholder(networkUrl);
+                  }(),
+                ),
+              ),
+              Text(
+                product['name'],
+                style: TextStyle(
+                  color: Colors.black,
+                  fontSize: r.font(13),
+                  fontWeight: FontWeight.bold,
+                ),
+                textAlign: TextAlign.center,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              Text(
+                _formatPrice(product['price']),
+                style: TextStyle(
+                  color: const Color(0xFF1D1B1B),
+                  fontSize: r.font(12),
+                ),
+              ),
+              Text(
+                'Stok: $stock',
+                style: TextStyle(
+                  color: isLowStock
+                      ? Colors.orange.shade700
+                      : const Color(0xFF1D1B1B),
+                  fontSize: r.font(12),
+                  fontWeight: isLowStock ? FontWeight.bold : FontWeight.normal,
+                ),
+              ),
+              SizedBox(height: r.space(8)),
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: r.space(12)),
+                child: SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () => Navigator.pushNamed(
+                      context,
+                      '/detail',
+                      arguments: product,
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFFE53935),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                    ),
+                    child: Text(
+                      'Lihat',
+                      style: TextStyle(
+                        fontSize: r.font(12),
+                        color: Colors.white,
+                      ),
+                    ),
                   ),
                 ),
-                child: Text(
-                  'Lihat',
-                  style: TextStyle(fontSize: r.font(12), color: Colors.white),
-                ),
+              ),
+              SizedBox(height: r.space(10)),
+            ],
+          ),
+        ),
+        if (isLowStock)
+          Positioned(
+            top: 8,
+            right: 8,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+              decoration: BoxDecoration(
+                color: Colors.orange,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(
+                    Icons.warning_amber_rounded,
+                    color: Colors.white,
+                    size: 12,
+                  ),
+                  const SizedBox(width: 3),
+                  Text(
+                    'Stok Menipis',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: r.font(9),
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
-          SizedBox(height: r.space(10)),
-        ],
-      ),
+      ],
     );
   }
 

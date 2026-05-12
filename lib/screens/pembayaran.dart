@@ -961,15 +961,24 @@ class _PembayaranState extends State<Pembayaran> {
                       : () {
                           if (!_isCashMode && !_isQRMode) {
                             _showPaymentOptions(subtotal, r);
-                          } else if (_isCashMode && _change < 0) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text(
-                                  'Pembayaran kurang! Harap lengkapi jumlah bayar.',
+                          } else if (_isCashMode) {
+                            final cash =
+                                int.tryParse(
+                                  _cashController.text.replaceAll('.', ''),
+                                ) ??
+                                0;
+                            if (cash < subtotal) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text(
+                                    'Pembayaran kurang! Harap lengkapi jumlah bayar.',
+                                  ),
+                                  backgroundColor: Colors.red,
                                 ),
-                                backgroundColor: Colors.red,
-                              ),
-                            );
+                              );
+                            } else if (!_isProcessing) {
+                              _processPayment(_items, subtotal, cash, r);
+                            }
                           } else if (!_isProcessing) {
                             final cash =
                                 int.tryParse(
@@ -980,7 +989,13 @@ class _PembayaranState extends State<Pembayaran> {
                           }
                         },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: _isCashMode && _change < 0
+                    backgroundColor:
+                        _isCashMode &&
+                            (int.tryParse(
+                                      _cashController.text.replaceAll('.', ''),
+                                    ) ??
+                                    0) <
+                                subtotal
                         ? Colors.grey
                         : const Color(0xFFE53935),
                   ),
