@@ -41,6 +41,7 @@ dependencies:
   permission_handler: ^11.3.1 # Request izin Bluetooth runtime (Android 12+)
   path_provider: ^2.1.5 # Akses temp directory
   mobile_scanner: ^6.0.0 # Scan barcode/QR dengan kamera
+  image_picker: ^1.1.2 # Ambil foto bukti bayar dari kamera/galeri
 
 dev_dependencies:
   flutter_test:

@@ -1,4 +1,7 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:permission_handler/permission_handler.dart';
 import '../utils/responsive_helper.dart';
 import '../utils/app_config.dart';
 import '../utils/api_service.dart';
@@ -13,6 +16,8 @@ class Pembayaran extends StatefulWidget {
 
 class _PembayaranState extends State<Pembayaran> {
   final TextEditingController _cashController = TextEditingController();
+  final ImagePicker _imagePicker = ImagePicker();
+  XFile? _qrProofImage;
   int _change = 0;
   bool _isCashMode = false;
   bool _isQRMode = false;
@@ -140,7 +145,7 @@ class _PembayaranState extends State<Pembayaran> {
                   color: Color(0xFFB71C1C),
                 ),
                 title: const Text(
-                  'QRIS',
+                  'Non Tunai',
                   style: TextStyle(fontFamily: 'Inter'),
                 ),
                 onTap: () {
@@ -148,6 +153,7 @@ class _PembayaranState extends State<Pembayaran> {
                   setState(() {
                     _isQRMode = true;
                     _isCashMode = false;
+                    _qrProofImage = null;
                   });
                 },
               ),
@@ -155,7 +161,7 @@ class _PembayaranState extends State<Pembayaran> {
               ListTile(
                 leading: const Icon(Icons.money, color: Colors.green),
                 title: const Text(
-                  'CASH',
+                  'Tunai',
                   style: TextStyle(fontFamily: 'Inter'),
                 ),
                 onTap: () {
@@ -163,6 +169,7 @@ class _PembayaranState extends State<Pembayaran> {
                   setState(() {
                     _isCashMode = true;
                     _isQRMode = false;
+                    _qrProofImage = null;
                   });
                 },
               ),
@@ -203,6 +210,7 @@ class _PembayaranState extends State<Pembayaran> {
         items: apiItems,
         paidAmount: cash,
         paymentMethod: paymentMethod,
+        proofImagePath: _isQRMode ? _qrProofImage?.path : null,
       );
       if (!mounted) return;
       _showReceipt(
@@ -283,7 +291,7 @@ class _PembayaranState extends State<Pembayaran> {
                   ),
                 ] else if (_isQRMode) ...[
                   const Text(
-                    'METODE: QRIS (LUNAS)',
+                    'METODE: NON TUNAI (LUNAS)',
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       color: Colors.green,
@@ -298,41 +306,71 @@ class _PembayaranState extends State<Pembayaran> {
                     onPressed: isPrinting
                         ? null
                         : () async {
+                            // Request izin Bluetooth sebelum cetak (Android 12+)
+                            final btConnect = await Permission.bluetoothConnect
+                                .request();
+                            final btScan = await Permission.bluetoothScan
+                                .request();
+                            if (!btConnect.isGranted || !btScan.isGranted) {
+                              if (mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text(
+                                      'Izin Bluetooth ditolak. Buka Pengaturan Printer untuk mengaktifkan izin.',
+                                    ),
+                                    backgroundColor: Colors.orange,
+                                  ),
+                                );
+                              }
+                              return;
+                            }
+
                             setDialogState(() => isPrinting = true);
 
-                            final printItems = items
-                                .map(
-                                  (item) => {
-                                    'name': item['name'] as String,
-                                    'qty': item['quantity'] as int,
-                                    'price': (item['price'] as int).toDouble(),
-                                    'subtotal':
-                                        ((item['price'] as int) *
-                                                (item['quantity'] as int))
-                                            .toDouble(),
-                                  },
-                                )
-                                .toList();
+                            ({bool ok, String error}) result = (
+                              ok: false,
+                              error: 'Terjadi kesalahan tak terduga',
+                            );
+                            try {
+                              final printItems = items
+                                  .map(
+                                    (item) => {
+                                      'name': item['name'] as String,
+                                      'qty': item['quantity'] as int,
+                                      'price': (item['price'] as int)
+                                          .toDouble(),
+                                      'subtotal':
+                                          ((item['price'] as int) *
+                                                  (item['quantity'] as int))
+                                              .toDouble(),
+                                    },
+                                  )
+                                  .toList();
 
-                            final result =
-                                await PrinterService.printReceiptWithDiag(
-                                  storeName: AppConfig.storeName,
-                                  cashierName: 'Kasir',
-                                  transactionId: invoiceNumber.isNotEmpty
-                                      ? invoiceNumber
-                                      : 'TRX-${DateTime.now().millisecondsSinceEpoch}',
-                                  dateTime: DateTime.now(),
-                                  items: printItems,
-                                  subtotal: subtotal.toDouble(),
-                                  tax: 0.0,
-                                  total: subtotal.toDouble(),
-                                  paid: cash > 0
-                                      ? cash.toDouble()
-                                      : subtotal.toDouble(),
-                                  change: change.toDouble(),
-                                );
-
-                            setDialogState(() => isPrinting = false);
+                              result = await PrinterService.printReceiptWithDiag(
+                                storeName: AppConfig.storeName,
+                                cashierName: 'Kasir',
+                                transactionId: invoiceNumber.isNotEmpty
+                                    ? invoiceNumber
+                                    : 'TRX-${DateTime.now().millisecondsSinceEpoch}',
+                                dateTime: DateTime.now(),
+                                items: printItems,
+                                subtotal: subtotal.toDouble(),
+                                tax: 0.0,
+                                total: subtotal.toDouble(),
+                                paid: cash > 0
+                                    ? cash.toDouble()
+                                    : subtotal.toDouble(),
+                                change: change.toDouble(),
+                                storeAddress: AppConfig.storeAddress,
+                              );
+                            } catch (e) {
+                              result = (ok: false, error: e.toString());
+                            } finally {
+                              if (dialogContext.mounted) {
+                                setDialogState(() => isPrinting = false);
+                              }
+                            }
 
                             if (mounted) {
                               if (result.ok) {
@@ -719,7 +757,7 @@ class _PembayaranState extends State<Pembayaran> {
               color: Colors.black,
             ),
             decoration: InputDecoration(
-              labelText: 'UANG DIBAYAR (CASH)',
+              labelText: 'UANG DIBAYAR (TUNAI)',
               labelStyle: const TextStyle(color: Color(0xFFC62828)),
               prefixText: 'Rp ',
               prefixStyle: const TextStyle(
@@ -796,32 +834,88 @@ class _PembayaranState extends State<Pembayaran> {
     );
   }
 
+  Future<void> _pickProofImage(ImageSource source) async {
+    try {
+      final file = await _imagePicker.pickImage(
+        source: source,
+        imageQuality: 80,
+        maxWidth: 1280,
+      );
+      if (file != null) setState(() => _qrProofImage = file);
+    } catch (_) {}
+  }
+
   Widget _buildQRView(Responsive r) {
     return Container(
       padding: const EdgeInsets.all(16),
       color: Colors.white,
       width: double.infinity,
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'METODE PEMBAYARAN: QRIS',
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: r.font(16)),
-          ),
-          const SizedBox(height: 10),
-          ElevatedButton.icon(
-            onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Membuka Kamera untuk Bukti Bayar...'),
-                ),
-              );
-            },
-            icon: const Icon(Icons.camera_alt),
-            label: const Text('Foto Bukti Bayar'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFFB71C1C),
-              foregroundColor: Colors.white,
+            'PEMBAYARAN NON TUNAI',
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: r.font(14),
+              color: const Color(0xFFB71C1C),
             ),
+          ),
+          const SizedBox(height: 8),
+          // Preview foto jika sudah dipilih
+          if (_qrProofImage != null) ...[
+            ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: Image.file(
+                File(_qrProofImage!.path),
+                height: 120,
+                width: double.infinity,
+                fit: BoxFit.cover,
+              ),
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              'Foto bukti bayar dipilih ✓',
+              style: TextStyle(
+                color: Colors.green,
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: 8),
+          ] else ...[
+            const Text(
+              'Upload foto bukti pembayaran (opsional)',
+              style: TextStyle(fontSize: 12, color: Colors.grey),
+            ),
+            const SizedBox(height: 8),
+          ],
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: () => _pickProofImage(ImageSource.camera),
+                  icon: const Icon(Icons.camera_alt, size: 16),
+                  label: const Text('Kamera'),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: const Color(0xFFB71C1C),
+                    side: const BorderSide(color: Color(0xFFB71C1C)),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: () => _pickProofImage(ImageSource.gallery),
+                  icon: const Icon(Icons.photo_library, size: 16),
+                  label: const Text('Galeri'),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: const Color(0xFFB71C1C),
+                    side: const BorderSide(color: Color(0xFFB71C1C)),
+                  ),
+                ),
+              ),
+            ],
           ),
         ],
       ),

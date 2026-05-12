@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:print_bluetooth_thermal/print_bluetooth_thermal.dart';
+import '../utils/app_config.dart';
 import '../utils/printer_service.dart';
 
 class PrinterScreen extends StatefulWidget {
@@ -194,7 +195,7 @@ class _PrinterScreenState extends State<PrinterScreen> {
       }
 
       final result = await PrinterService.printReceiptWithDiag(
-        storeName: 'ILS MART',
+        storeName: AppConfig.storeName,
         cashierName: 'Test Kasir',
         transactionId: 'TRX-TEST-001',
         dateTime: DateTime.now(),
@@ -217,6 +218,7 @@ class _PrinterScreenState extends State<PrinterScreen> {
         total: 12000.0,
         paid: 20000.0,
         change: 8000.0,
+        storeAddress: AppConfig.storeAddress,
       );
       if (mounted) {
         if (result.ok) {

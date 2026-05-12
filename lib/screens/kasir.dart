@@ -416,9 +416,10 @@ class _KasirState extends State<Kasir> {
     );
     if (scanned == null || scanned.isEmpty) return;
 
-    // Cari produk berdasarkan SKU atau nama
+    // Cari produk berdasarkan barcode, SKU, atau nama
     final found = _products.firstWhere(
       (p) =>
+          (p['barcode'] as String?)?.toLowerCase() == scanned.toLowerCase() ||
           (p['sku'] as String?)?.toLowerCase() == scanned.toLowerCase() ||
           (p['name'] as String).toLowerCase().contains(scanned.toLowerCase()),
       orElse: () => {},

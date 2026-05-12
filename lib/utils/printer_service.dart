@@ -34,9 +34,10 @@ class PrinterService {
       return await PrintBluetoothThermal.connect(
         macPrinterAddress: mac,
       ).timeout(
-        const Duration(seconds: 15),
+        const Duration(seconds: 8),
         onTimeout: () {
-          lastError = 'Timeout: printer tidak merespons dalam 15 detik';
+          lastError =
+              'Timeout: printer tidak merespons dalam 8 detik. Pastikan printer menyala dan dalam jangkauan.';
           return false;
         },
       );
@@ -102,6 +103,7 @@ class PrinterService {
     required double paid,
     required double change,
     String? note,
+    String? storeAddress,
   }) async {
     try {
       final btOn = await PrintBluetoothThermal.bluetoothEnabled;
@@ -143,6 +145,7 @@ class PrinterService {
           paid: paid,
           change: change,
           note: note,
+          storeAddress: storeAddress,
         );
       } catch (e) {
         return (
@@ -207,6 +210,7 @@ class PrinterService {
     required double paid,
     required double change,
     String? note,
+    String? storeAddress,
   }) async {
     final result = await printReceiptWithDiag(
       storeName: storeName,
@@ -220,6 +224,7 @@ class PrinterService {
       paid: paid,
       change: change,
       note: note,
+      storeAddress: storeAddress,
     );
     if (!result.ok) lastError = result.error;
     return result.ok;
@@ -239,6 +244,7 @@ class PrinterService {
     required double paid,
     required double change,
     String? note,
+    String? storeAddress,
   }) async {
     final profile = await CapabilityProfile.load();
     final generator = Generator(PaperSize.mm80, profile);
@@ -361,7 +367,13 @@ class PrinterService {
       'Terima kasih!',
       styles: const PosStyles(align: PosAlign.center, bold: true),
     );
-    bytes += generator.feed(3);
+    if (storeAddress != null && storeAddress.isNotEmpty) {
+      bytes += generator.text(
+        storeAddress,
+        styles: const PosStyles(align: PosAlign.center),
+      );
+    }
+    bytes += generator.feed(1);
     bytes += generator.cut();
 
     return bytes;

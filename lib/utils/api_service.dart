@@ -60,34 +60,61 @@ class ApiService {
   }
 
   /// [items] contoh: [{'id': 1, 'qty': 2}, {'id': 5, 'qty': 1}]
+  /// [proofImagePath] path lokal foto bukti bayar Non Tunai (opsional)
   static Future<Map<String, dynamic>> createTransaction({
     required List<Map<String, dynamic>> items,
     required int paidAmount,
     required String paymentMethod,
+    String? proofImagePath,
   }) async {
-    final response = await http
-        .post(
-          Uri.parse('$_baseUrl/transactions'),
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-          },
-          body: jsonEncode({
-            'items': items,
-            'paid_amount': paidAmount,
-            'payment_method': paymentMethod,
-          }),
-        )
-        .timeout(const Duration(seconds: 20));
+    if (proofImagePath != null) {
+      // Multipart request ketika ada foto bukti bayar
+      final request = http.MultipartRequest(
+        'POST',
+        Uri.parse('$_baseUrl/transactions'),
+      );
+      request.headers['Accept'] = 'application/json';
+      request.fields['items'] = jsonEncode(items);
+      request.fields['paid_amount'] = paidAmount.toString();
+      request.fields['payment_method'] = paymentMethod;
+      request.files.add(
+        await http.MultipartFile.fromPath('payment_proof', proofImagePath),
+      );
+      final streamed = await request.send().timeout(
+        const Duration(seconds: 30),
+      );
+      final response = await http.Response.fromStream(streamed);
+      final body = jsonDecode(response.body);
+      if (response.statusCode == 201) return body as Map<String, dynamic>;
+      throw Exception(
+        body['message'] ?? 'Transaksi gagal (${response.statusCode})',
+      );
+    } else {
+      // JSON biasa tanpa foto
+      final response = await http
+          .post(
+            Uri.parse('$_baseUrl/transactions'),
+            headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json',
+            },
+            body: jsonEncode({
+              'items': items,
+              'paid_amount': paidAmount,
+              'payment_method': paymentMethod,
+            }),
+          )
+          .timeout(const Duration(seconds: 20));
 
-    final body = jsonDecode(response.body);
+      final body = jsonDecode(response.body);
 
-    if (response.statusCode == 201) {
-      return body as Map<String, dynamic>;
+      if (response.statusCode == 201) {
+        return body as Map<String, dynamic>;
+      }
+      throw Exception(
+        body['message'] ?? 'Transaksi gagal (${response.statusCode})',
+      );
     }
-    throw Exception(
-      body['message'] ?? 'Transaksi gagal (${response.statusCode})',
-    );
   }
 
   // ─── Auth ─────────────────────────────────────────────────────────────────

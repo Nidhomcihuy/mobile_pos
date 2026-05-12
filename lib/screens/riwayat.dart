@@ -209,6 +209,7 @@ class _RiwayatState extends State<Riwayat> {
         total: total,
         paid: paid,
         change: change,
+        storeAddress: AppConfig.storeAddress,
       );
 
       if (!mounted) return;

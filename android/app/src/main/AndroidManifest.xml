@@ -16,6 +16,10 @@
     <uses-permission android:name="android.permission.BLUETOOTH_SCAN"
         android:usesPermissionFlags="neverForLocation"/>
 
+    <!-- Galeri foto untuk bukti bayar Non Tunai (Android <= 12) -->
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32"/>
+    <!-- Android 13+ pakai media picker sistem, tidak perlu izin READ_MEDIA_IMAGES -->
+
     <application
         android:label="pos_toko"
         android:name="${applicationName}"
