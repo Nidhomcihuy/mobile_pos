@@ -75,6 +75,104 @@ class _KasirState extends State<Kasir> {
     }).toList();
   }
 
+  DateTime _parseExpiry(String ddMmYyyy) {
+    final p = ddMmYyyy.split('/');
+    if (p.length != 3) return DateTime(9999);
+    return DateTime(int.parse(p[2]), int.parse(p[1]), int.parse(p[0]));
+  }
+
+  /// Mengelompokkan produk berdasarkan nama + harga yang sama menjadi satu kartu.
+  /// Batch diurutkan FIFO: expires_at paling dekat duluan (null = paling akhir).
+  List<Map<String, dynamic>> get _groupedProducts {
+    final Map<String, Map<String, dynamic>> groups = {};
+    for (final p in _filteredProducts) {
+      final name = (p['name'] ?? '').toString();
+      final price = p['price'] as int;
+      final ukuran = (p['ukuran'] ?? '').toString();
+      final satuan = (p['satuan'] ?? '').toString();
+      final key = '${name}__${price}__${ukuran}__$satuan';
+      if (!groups.containsKey(key)) {
+        groups[key] = {
+          'groupKey': key,
+          'name': name,
+          'price': price,
+          'ukuran': ukuran,
+          'satuan': satuan,
+          'totalStock': 0,
+          'category': p['category'],
+          'image_url': p['image_url'],
+          'batches': <Map<String, dynamic>>[],
+        };
+      }
+      (groups[key]!['batches'] as List<Map<String, dynamic>>).add({
+        'id': p['id'],
+        'stock': p['stock'] as int,
+        'expires_at': p['expires_at'],
+      });
+      groups[key]!['totalStock'] =
+          (groups[key]!['totalStock'] as int) + (p['stock'] as int);
+    }
+    for (final group in groups.values) {
+      (group['batches'] as List<Map<String, dynamic>>).sort((a, b) {
+        final ea = a['expires_at'] as String?;
+        final eb = b['expires_at'] as String?;
+        if (ea == null && eb == null) return 0;
+        if (ea == null) return 1;
+        if (eb == null) return -1;
+        return _parseExpiry(ea).compareTo(_parseExpiry(eb));
+      });
+    }
+    return groups.values.toList();
+  }
+
+  /// Tambah 1 qty ke cart untuk group: isi batch FIFO (expired terdekat dulu).
+  void _addGroupToCart(Map<String, dynamic> group) {
+    final key = group['groupKey'] as String;
+    final batches = group['batches'] as List<Map<String, dynamic>>;
+    if (!_cart.containsKey(key)) {
+      _cart[key] = {
+        'groupKey': key,
+        'name': group['name'],
+        'price': group['price'],
+        'quantity': 0,
+        'batches': batches
+            .map(
+              (b) => {
+                'id': b['id'],
+                'stock': b['stock'] as int,
+                'qty': 0,
+                'expires_at': b['expires_at'],
+              },
+            )
+            .toList(),
+      };
+    }
+    final cartBatches = _cart[key]!['batches'] as List<Map<String, dynamic>>;
+    for (final b in cartBatches) {
+      if ((b['qty'] as int) < (b['stock'] as int)) {
+        b['qty'] = (b['qty'] as int) + 1;
+        _cart[key]!['quantity'] = (_cart[key]!['quantity'] as int) + 1;
+        break;
+      }
+    }
+  }
+
+  /// Kurangi 1 qty dari cart: kurangi dari batch paling belakang (undo FIFO).
+  void _removeGroupFromCart(String key) {
+    if (!_cart.containsKey(key)) return;
+    final cartBatches = _cart[key]!['batches'] as List<Map<String, dynamic>>;
+    for (int i = cartBatches.length - 1; i >= 0; i--) {
+      if ((cartBatches[i]['qty'] as int) > 0) {
+        cartBatches[i]['qty'] = (cartBatches[i]['qty'] as int) - 1;
+        _cart[key]!['quantity'] = (_cart[key]!['quantity'] as int) - 1;
+        break;
+      }
+    }
+    if ((_cart[key]!['quantity'] as int) <= 0) {
+      _cart.remove(key);
+    }
+  }
+
   int get _totalItems {
     return _cart.values.fold(0, (sum, item) => sum + (item['quantity'] as int));
   }
@@ -114,10 +212,31 @@ class _KasirState extends State<Kasir> {
               right: r.space(24),
               child: FloatingActionButton.extended(
                 onPressed: () {
+                  // Flatten grouped cart ke list item per batch untuk pembayaran
+                  final pembayaranItems = <Map<String, dynamic>>[];
+                  for (final entry in _cart.values) {
+                    final cartBatches =
+                        entry['batches'] as List<Map<String, dynamic>>;
+                    final activeBatches = cartBatches
+                        .where((b) => (b['qty'] as int) > 0)
+                        .map((b) => Map<String, dynamic>.from(b))
+                        .toList();
+                    if (activeBatches.isEmpty) continue;
+                    final totalQty = activeBatches.fold(
+                      0,
+                      (s, b) => s + (b['qty'] as int),
+                    );
+                    pembayaranItems.add({
+                      'name': entry['name'],
+                      'price': entry['price'],
+                      'quantity': totalQty,
+                      'batches': activeBatches,
+                    });
+                  }
                   Navigator.pushNamed(
                     context,
                     '/pembayaran',
-                    arguments: _cart.values.toList(),
+                    arguments: pembayaranItems,
                   );
                 },
                 backgroundColor: const Color(0xFFB71C1C),
@@ -317,19 +436,45 @@ class _KasirState extends State<Kasir> {
     }
 
     final name = found['name'] as String;
-    final String scannedKey = found['id']?.toString() ?? name;
+    final price = found['price'] as int;
+    final ukuran = (found['ukuran'] ?? '').toString();
+    final satuan = (found['satuan'] ?? '').toString();
+    final groupKey = '${name}__${price}__${ukuran}__$satuan';
+    // Kumpulkan semua batch produk dengan nama+harga+ukuran+satuan sama, urutkan FIFO
+    final groupBatches =
+        _products
+            .where(
+              (p) =>
+                  (p['name'] ?? '') == name &&
+                  (p['price'] as int) == price &&
+                  (p['ukuran'] ?? '') == ukuran &&
+                  (p['satuan'] ?? '') == satuan,
+            )
+            .map(
+              (p) => {
+                'id': p['id'],
+                'stock': p['stock'] as int,
+                'expires_at': p['expires_at'],
+              },
+            )
+            .toList()
+          ..sort((a, b) {
+            final ea = a['expires_at'] as String?;
+            final eb = b['expires_at'] as String?;
+            if (ea == null && eb == null) return 0;
+            if (ea == null) return 1;
+            if (eb == null) return -1;
+            return _parseExpiry(ea).compareTo(_parseExpiry(eb));
+          });
     setState(() {
-      if (_cart.containsKey(scannedKey)) {
-        _cart[scannedKey]!['quantity'] =
-            (_cart[scannedKey]!['quantity'] as int) + 1;
-      } else {
-        _cart[scannedKey] = {
-          'id': found['id'],
-          'name': name,
-          'price': found['price'],
-          'quantity': 1,
-        };
-      }
+      _addGroupToCart({
+        'groupKey': groupKey,
+        'name': name,
+        'price': price,
+        'ukuran': ukuran,
+        'satuan': satuan,
+        'batches': groupBatches,
+      });
     });
 
     if (!mounted) return;
@@ -443,7 +588,7 @@ class _KasirState extends State<Kasir> {
         child: CircularProgressIndicator(color: Color(0xFFC62828)),
       );
     }
-    final products = _filteredProducts;
+    final groups = _groupedProducts;
     return GridView.builder(
       padding: EdgeInsets.only(bottom: r.space(80)),
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
@@ -452,17 +597,22 @@ class _KasirState extends State<Kasir> {
         crossAxisSpacing: r.space(16),
         childAspectRatio: 0.72,
       ),
-      itemCount: products.length,
-      itemBuilder: (context, index) => _buildProductCard(products[index], r),
+      itemCount: groups.length,
+      itemBuilder: (context, index) => _buildProductCard(groups[index], r),
     );
   }
 
-  Widget _buildProductCard(Map<String, dynamic> product, Responsive r) {
-    final String productName = (product['name'] ?? '').toString();
-    final String cartKey = product['id']?.toString() ?? '';
-    final int quantity = cartKey.isEmpty
-        ? 0
-        : (_cart[cartKey]?['quantity'] ?? 0);
+  Widget _buildProductCard(Map<String, dynamic> group, Responsive r) {
+    final String productName = group['name'] as String;
+    final String ukuran = (group['ukuran'] ?? '').toString();
+    final String satuan = (group['satuan'] ?? '').toString();
+    final String subtitle = [
+      ukuran,
+      satuan,
+    ].where((s) => s.isNotEmpty).join(' ');
+    final String groupKey = group['groupKey'] as String;
+    final int totalStock = group['totalStock'] as int;
+    final int quantity = _cart[groupKey]?['quantity'] as int? ?? 0;
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -486,9 +636,9 @@ class _KasirState extends State<Kasir> {
             flex: 3,
             child: Padding(
               padding: EdgeInsets.all(r.space(12)),
-              child: product['image_url'] != null
+              child: group['image_url'] != null
                   ? Image.network(
-                      product['image_url'] as String,
+                      group['image_url'] as String,
                       fit: BoxFit.contain,
                       loadingBuilder: (context, child, loadingProgress) {
                         if (loadingProgress == null) return child;
@@ -524,8 +674,18 @@ class _KasirState extends State<Kasir> {
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
+          if (subtitle.isNotEmpty)
+            Text(
+              subtitle,
+              style: TextStyle(
+                color: const Color(0xFF888888),
+                fontSize: r.font(11),
+                fontFamily: 'Inter',
+              ),
+              textAlign: TextAlign.center,
+            ),
           Text(
-            _formatPrice(product['price']),
+            _formatPrice(group['price'] as int),
             style: TextStyle(
               color: const Color(0xFF1D1B1B),
               fontSize: r.font(12),
@@ -533,7 +693,7 @@ class _KasirState extends State<Kasir> {
             ),
           ),
           Text(
-            'Stok: ${product['stock']}',
+            'Stok: $totalStock',
             style: TextStyle(
               color: const Color(0xFF1D1B1B),
               fontSize: r.font(12),
@@ -549,12 +709,7 @@ class _KasirState extends State<Kasir> {
                     child: ElevatedButton(
                       onPressed: () {
                         setState(() {
-                          _cart[cartKey] = {
-                            'id': product['id'],
-                            'name': product['name'],
-                            'price': product['price'],
-                            'quantity': 1,
-                          };
+                          _addGroupToCart(group);
                         });
                       },
                       style: ElevatedButton.styleFrom(
@@ -594,11 +749,7 @@ class _KasirState extends State<Kasir> {
                           ),
                           onPressed: () {
                             setState(() {
-                              if (_cart[cartKey]!['quantity'] > 1) {
-                                _cart[cartKey]!['quantity']--;
-                              } else {
-                                _cart.remove(cartKey);
-                              }
+                              _removeGroupFromCart(groupKey);
                             });
                           },
                         ),
@@ -621,9 +772,8 @@ class _KasirState extends State<Kasir> {
                           ),
                           onPressed: () {
                             setState(() {
-                              if (_cart[cartKey]!['quantity'] <
-                                  product['stock']) {
-                                _cart[cartKey]!['quantity']++;
+                              if (quantity < totalStock) {
+                                _addGroupToCart(group);
                               }
                             });
                           },

@@ -48,11 +48,41 @@ class _PembayaranState extends State<Pembayaran> {
 
   void _changeQty(int index, int delta) {
     setState(() {
-      final newQty = (_items[index]['quantity'] as int) + delta;
-      if (newQty <= 0) {
-        _items.removeAt(index);
+      final item = _items[index];
+      final batches = item['batches'] as List<Map<String, dynamic>>?;
+      if (batches != null && batches.length > 1) {
+        // Multi-batch: FIFO add, reverse-FIFO remove
+        if (delta > 0) {
+          for (final b in batches) {
+            if ((b['qty'] as int) < (b['stock'] as int)) {
+              b['qty'] = (b['qty'] as int) + 1;
+              item['quantity'] = (item['quantity'] as int) + 1;
+              break;
+            }
+          }
+        } else {
+          for (int i = batches.length - 1; i >= 0; i--) {
+            if ((batches[i]['qty'] as int) > 0) {
+              batches[i]['qty'] = (batches[i]['qty'] as int) - 1;
+              item['quantity'] = (item['quantity'] as int) - 1;
+              break;
+            }
+          }
+          if ((item['quantity'] as int) <= 0) {
+            _items.removeAt(index);
+          }
+        }
       } else {
-        _items[index]['quantity'] = newQty;
+        // Single batch
+        final newQty = (item['quantity'] as int) + delta;
+        if (newQty <= 0) {
+          _items.removeAt(index);
+        } else {
+          item['quantity'] = newQty;
+          if (batches != null && batches.isNotEmpty) {
+            batches[0]['qty'] = newQty;
+          }
+        }
       }
       // reset metode bayar jika total berubah
       _isCashMode = false;
@@ -151,9 +181,20 @@ class _PembayaranState extends State<Pembayaran> {
   ) async {
     setState(() => _isProcessing = true);
 
-    final apiItems = items
-        .map((item) => {'id': item['id'], 'qty': item['quantity'] as int})
-        .toList();
+    // Flatten batches per produk menjadi item API terpisah per batch
+    final apiItems = <Map<String, dynamic>>[];
+    for (final item in items) {
+      final batches = item['batches'] as List<Map<String, dynamic>>?;
+      if (batches != null && batches.isNotEmpty) {
+        for (final b in batches) {
+          if ((b['qty'] as int) > 0) {
+            apiItems.add({'id': b['id'], 'qty': b['qty'] as int});
+          }
+        }
+      } else {
+        apiItems.add({'id': item['id'], 'qty': item['quantity'] as int});
+      }
+    }
 
     final paymentMethod = _isQRMode ? 'qris' : 'cash';
 
