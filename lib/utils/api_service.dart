@@ -7,9 +7,15 @@ class ApiService {
 
   // ─── Products ───────────────────────────────────────────────────────────────
 
-  static Future<List<Map<String, dynamic>>> fetchProducts() async {
+  /// [includeZeroStock] jika true, mengembalikan semua produk aktif termasuk
+  /// yang stoknya 0 (untuk tampilan dashboard/katalog).
+  static Future<List<Map<String, dynamic>>> fetchProducts({
+    bool includeZeroStock = false,
+  }) async {
+    final uri = Uri.parse('$_baseUrl/products')
+        .replace(queryParameters: includeZeroStock ? {'all': '1'} : null);
     final response = await http
-        .get(Uri.parse('$_baseUrl/products'))
+        .get(uri)
         .timeout(const Duration(seconds: 15));
 
     if (response.statusCode == 200) {
