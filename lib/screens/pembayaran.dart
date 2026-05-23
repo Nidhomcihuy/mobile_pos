@@ -51,6 +51,27 @@ class _PembayaranState extends State<Pembayaran> {
     return s;
   }
 
+  int _discountForItem(Map<String, dynamic> item) {
+    final promo = item['promo'] as Map<String, dynamic>?;
+    if (promo == null) return 0;
+    final type = promo['type'] as String? ?? '';
+    final value = (promo['discount_value'] as num?)?.toDouble() ?? 0.0;
+    final qty = item['quantity'] as int;
+    final price = item['price'] as int;
+    if (type == 'percent') {
+      return ((price * qty) * value / 100).round();
+    } else if (type == 'fixed') {
+      return (value * qty).round().clamp(0, price * qty);
+    }
+    return 0;
+  }
+
+  int get _totalDiscount {
+    return _items.fold(0, (sum, item) => sum + _discountForItem(item));
+  }
+
+  int get _grandTotal => _subtotal - _totalDiscount;
+
   void _changeQty(int index, int delta) {
     setState(() {
       final item = _items[index];
@@ -111,10 +132,10 @@ class _PembayaranState extends State<Pembayaran> {
     return 'Rp $result';
   }
 
-  void _calculateChange(int subtotal) {
+  void _calculateChange(int grandTotal) {
     int cash = int.tryParse(_cashController.text.replaceAll('.', '')) ?? 0;
     setState(() {
-      _change = cash - subtotal;
+      _change = cash - grandTotal;
     });
   }
 
@@ -182,8 +203,9 @@ class _PembayaranState extends State<Pembayaran> {
 
   Future<void> _processPayment(
     List<Map<String, dynamic>> items,
-    int subtotal,
+    int grandTotal,
     int cash,
+    int discountAmount,
     Responsive r,
   ) async {
     setState(() => _isProcessing = true);
@@ -208,17 +230,19 @@ class _PembayaranState extends State<Pembayaran> {
     try {
       final result = await ApiService.createTransaction(
         items: apiItems,
-        paidAmount: _isQRMode ? subtotal : cash,
+        paidAmount: _isQRMode ? grandTotal : cash,
         paymentMethod: paymentMethod,
         proofImagePath: _isQRMode ? _qrProofImage?.path : null,
+        discountAmount: discountAmount,
       );
       if (!mounted) return;
       _showReceipt(
         items,
-        result['total_amount'] as int? ?? subtotal,
+        result['total_amount'] as int? ?? grandTotal,
         result['paid_amount'] as int? ?? cash,
-        result['change'] as int? ?? (cash - subtotal),
+        result['change'] as int? ?? (cash - grandTotal),
         result['invoice_number']?.toString() ?? '',
+        discountAmount,
         r,
       );
     } catch (e) {
@@ -236,10 +260,11 @@ class _PembayaranState extends State<Pembayaran> {
 
   void _showReceipt(
     List<Map<String, dynamic>> items,
-    int subtotal,
+    int grandTotal,
     int cash,
     int change,
     String invoiceNumber,
+    int discountAmount,
     Responsive r,
   ) {
     bool isPrinting = false;
@@ -273,9 +298,40 @@ class _PembayaranState extends State<Pembayaran> {
                   ),
                 ),
                 const Divider(),
+                if (discountAmount > 0) ...[
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text('SUBTOTAL'),
+                      Text(_formatPrice(grandTotal + discountAmount)),
+                    ],
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'DISKON',
+                        style: TextStyle(color: Colors.green),
+                      ),
+                      Text(
+                        '- ${_formatPrice(discountAmount)}',
+                        style: const TextStyle(color: Colors.green),
+                      ),
+                    ],
+                  ),
+                ],
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [const Text('TOTAL'), Text(_formatPrice(subtotal))],
+                  children: [
+                    const Text(
+                      'TOTAL',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    Text(
+                      _formatPrice(grandTotal),
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                  ],
                 ),
                 if (cash > 0) ...[
                   Row(
@@ -355,10 +411,10 @@ class _PembayaranState extends State<Pembayaran> {
                                     : 'TRX-${DateTime.now().millisecondsSinceEpoch}',
                                 dateTime: DateTime.now(),
                                 items: printItems,
-                                subtotal: subtotal.toDouble(),
+                                subtotal: (grandTotal + discountAmount).toDouble(),
                                 tax: 0.0,
-                                total: subtotal.toDouble(),
-                                paid: subtotal.toDouble(),
+                                total: grandTotal.toDouble(),
+                                paid: _isQRMode ? grandTotal.toDouble() : cash.toDouble(),
                                 change: _isQRMode ? 0.0 : change.toDouble(),
                                 note: _isQRMode ? 'NON TUNAI (LUNAS)' : null,
                                 storeAddress: AppConfig.storeAddress,
@@ -474,6 +530,8 @@ class _PembayaranState extends State<Pembayaran> {
   Widget build(BuildContext context) {
     final r = Responsive.of(context);
     final int subtotal = _subtotal;
+    final int discount = _totalDiscount;
+    final int grandTotal = _grandTotal;
 
     if (_items.isEmpty && _itemsInitialized) {
       // Semua item dihapus, kembali ke kasir
@@ -508,9 +566,9 @@ class _PembayaranState extends State<Pembayaran> {
                         children: [
                           _buildTransactionHeader(_items.length, r),
                           Expanded(child: _buildItemsList(r)),
-                          if (_isCashMode) _buildCashInput(subtotal, r),
+                          if (_isCashMode) _buildCashInput(grandTotal, r),
                           if (_isQRMode) _buildQRView(r),
-                          _buildSummarySection(subtotal, r),
+                          _buildSummarySection(subtotal, discount, grandTotal, r),
                         ],
                       ),
                     ),
@@ -629,6 +687,9 @@ class _PembayaranState extends State<Pembayaran> {
         final item = _items[index];
         final qty = item['quantity'] as int;
         final price = item['price'] as int;
+        final itemDiscount = _discountForItem(item);
+        final discountedTotal = price * qty - itemDiscount;
+        final hasDiscount = itemDiscount > 0;
         return Padding(
           padding: const EdgeInsets.symmetric(vertical: 6),
           child: Row(
@@ -649,14 +710,34 @@ class _PembayaranState extends State<Pembayaran> {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    Text(
-                      _formatPrice(price),
-                      style: TextStyle(
-                        fontSize: r.font(11),
-                        color: Colors.grey[600],
-                        fontFamily: 'Inter',
+                    if (hasDiscount) ...[
+                      Text(
+                        _formatPrice(price),
+                        style: TextStyle(
+                          fontSize: r.font(10),
+                          color: Colors.grey[400],
+                          fontFamily: 'Inter',
+                          decoration: TextDecoration.lineThrough,
+                        ),
                       ),
-                    ),
+                      Text(
+                        '${_formatPrice(price - (itemDiscount / qty).round())} / item',
+                        style: TextStyle(
+                          fontSize: r.font(10),
+                          color: Colors.green[700],
+                          fontFamily: 'Inter',
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ] else
+                      Text(
+                        _formatPrice(price),
+                        style: TextStyle(
+                          fontSize: r.font(11),
+                          color: Colors.grey[600],
+                          fontFamily: 'Inter',
+                        ),
+                      ),
                   ],
                 ),
               ),
@@ -724,7 +805,7 @@ class _PembayaranState extends State<Pembayaran> {
               Expanded(
                 flex: 2,
                 child: Text(
-                  _formatPrice(price * qty),
+                  _formatPrice(discountedTotal),
                   textAlign: TextAlign.right,
                   style: TextStyle(
                     fontSize: r.font(12),
@@ -782,7 +863,7 @@ class _PembayaranState extends State<Pembayaran> {
                 ),
               ),
             ),
-            onChanged: (_) => _calculateChange(subtotal),
+            onChanged: (_) => _calculateChange(grandTotal),
           ),
           SizedBox(height: 10),
           Row(
@@ -928,7 +1009,7 @@ class _PembayaranState extends State<Pembayaran> {
     );
   }
 
-  Widget _buildSummarySection(int subtotal, Responsive r) {
+  Widget _buildSummarySection(int subtotal, int discount, int grandTotal, Responsive r) {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: const BoxDecoration(
@@ -943,13 +1024,60 @@ class _PembayaranState extends State<Pembayaran> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text('TOTAL'),
-              Text(
-                _formatPrice(subtotal),
-                style: const TextStyle(fontWeight: FontWeight.bold),
-              ),
+              const Text('SUBTOTAL'),
+              Text(_formatPrice(subtotal)),
             ],
           ),
+          if (discount > 0) ...[
+            const SizedBox(height: 4),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  'DISKON PROMO',
+                  style: TextStyle(
+                    color: Colors.green,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                Text(
+                  '- ${_formatPrice(discount)}',
+                  style: const TextStyle(
+                    color: Colors.green,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+            const Divider(height: 12),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  'TOTAL',
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                ),
+                Text(
+                  _formatPrice(grandTotal),
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 15,
+                    color: Color(0xFFB71C1C),
+                  ),
+                ),
+              ],
+            ),
+          ] else
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text('TOTAL'),
+                Text(
+                  _formatPrice(grandTotal),
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+              ],
+            ),
           SizedBox(height: 16),
           Row(
             children: [
@@ -960,14 +1088,14 @@ class _PembayaranState extends State<Pembayaran> {
                       ? null
                       : () {
                           if (!_isCashMode && !_isQRMode) {
-                            _showPaymentOptions(subtotal, r);
+                            _showPaymentOptions(grandTotal, r);
                           } else if (_isCashMode) {
                             final cash =
                                 int.tryParse(
                                   _cashController.text.replaceAll('.', ''),
                                 ) ??
                                 0;
-                            if (cash < subtotal) {
+                            if (cash < grandTotal) {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
                                   content: Text(
@@ -977,7 +1105,7 @@ class _PembayaranState extends State<Pembayaran> {
                                 ),
                               );
                             } else if (!_isProcessing) {
-                              _processPayment(_items, subtotal, cash, r);
+                              _processPayment(_items, grandTotal, cash, discount, r);
                             }
                           } else if (!_isProcessing) {
                             final cash =
@@ -985,7 +1113,7 @@ class _PembayaranState extends State<Pembayaran> {
                                   _cashController.text.replaceAll('.', ''),
                                 ) ??
                                 0;
-                            _processPayment(_items, subtotal, cash, r);
+                            _processPayment(_items, grandTotal, cash, discount, r);
                           }
                         },
                   style: ElevatedButton.styleFrom(
@@ -995,7 +1123,7 @@ class _PembayaranState extends State<Pembayaran> {
                                       _cashController.text.replaceAll('.', ''),
                                     ) ??
                                     0) <
-                                subtotal
+                                grandTotal
                         ? Colors.grey
                         : const Color(0xFFE53935),
                     foregroundColor: Colors.white,
