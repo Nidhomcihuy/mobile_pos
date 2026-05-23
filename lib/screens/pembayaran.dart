@@ -998,6 +998,7 @@ class _PembayaranState extends State<Pembayaran> {
                                 subtotal
                         ? Colors.grey
                         : const Color(0xFFE53935),
+                    foregroundColor: Colors.white,
                   ),
                   child: _isProcessing
                       ? const SizedBox(
