@@ -102,6 +102,7 @@ class _KasirState extends State<Kasir> {
           'totalStock': 0,
           'category': p['category'],
           'image_url': p['image_url'],
+          'promo': p['promo'],
           'batches': <Map<String, dynamic>>[],
         };
       }
@@ -135,6 +136,7 @@ class _KasirState extends State<Kasir> {
         'groupKey': key,
         'name': group['name'],
         'price': group['price'],
+        'promo': group['promo'],
         'quantity': 0,
         'batches': batches
             .map(
@@ -230,6 +232,7 @@ class _KasirState extends State<Kasir> {
                     pembayaranItems.add({
                       'name': entry['name'],
                       'price': entry['price'],
+                      'promo': entry['promo'],
                       'quantity': totalQty,
                       'batches': activeBatches,
                     });
@@ -490,6 +493,7 @@ class _KasirState extends State<Kasir> {
         'price': price,
         'ukuran': ukuran,
         'satuan': satuan,
+        'promo': found['promo'],
         'batches': groupBatches,
       });
     });
@@ -630,6 +634,10 @@ class _KasirState extends State<Kasir> {
     final String groupKey = group['groupKey'] as String;
     final int totalStock = group['totalStock'] as int;
     final int quantity = _cart[groupKey]?['quantity'] as int? ?? 0;
+    final promo = group['promo'] as Map<String, dynamic>?;
+    final int displayPrice = promo != null
+        ? (promo['discounted_price'] as num).toInt()
+        : (group['price'] as int);
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -651,32 +659,59 @@ class _KasirState extends State<Kasir> {
         children: [
           Expanded(
             flex: 3,
-            child: Padding(
-              padding: EdgeInsets.all(r.space(12)),
-              child: group['image_url'] != null
-                  ? Image.network(
-                      group['image_url'] as String,
-                      fit: BoxFit.contain,
-                      loadingBuilder: (context, child, loadingProgress) {
-                        if (loadingProgress == null) return child;
-                        return const Center(
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
+            child: Stack(
+              children: [
+                Padding(
+                  padding: EdgeInsets.all(r.space(12)),
+                  child: group['image_url'] != null
+                      ? Image.network(
+                          group['image_url'] as String,
+                          fit: BoxFit.contain,
+                          loadingBuilder: (context, child, loadingProgress) {
+                            if (loadingProgress == null) return child;
+                            return const Center(
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Color(0xFFC62828),
+                              ),
+                            );
+                          },
+                          errorBuilder: (context, error, stackTrace) =>
+                              const Icon(
+                            Icons.inventory_2,
+                            size: 48,
                             color: Color(0xFFC62828),
                           ),
-                        );
-                      },
-                      errorBuilder: (context, error, stackTrace) => const Icon(
-                        Icons.inventory_2,
-                        size: 48,
-                        color: Color(0xFFC62828),
+                        )
+                      : const Icon(
+                          Icons.inventory_2,
+                          size: 48,
+                          color: Color(0xFFC62828),
+                        ),
+                ),
+                if (promo != null)
+                  Positioned(
+                    top: 6,
+                    left: 6,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFE53935),
+                        borderRadius: BorderRadius.circular(6),
                       ),
-                    )
-                  : const Icon(
-                      Icons.inventory_2,
-                      size: 48,
-                      color: Color(0xFFC62828),
+                      child: Text(
+                        promo['label'] as String,
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: r.font(9),
+                          fontWeight: FontWeight.bold,
+                          fontFamily: 'Inter',
+                        ),
+                      ),
                     ),
+                  ),
+              ],
             ),
           ),
           Text(
@@ -701,14 +736,34 @@ class _KasirState extends State<Kasir> {
               ),
               textAlign: TextAlign.center,
             ),
-          Text(
-            _formatPrice(group['price'] as int),
-            style: TextStyle(
-              color: const Color(0xFF1D1B1B),
-              fontSize: r.font(12),
-              fontFamily: 'Inter',
+          if (promo != null) ...[
+            Text(
+              _formatPrice(group['price'] as int),
+              style: TextStyle(
+                color: const Color(0xFF888888),
+                fontSize: r.font(11),
+                fontFamily: 'Inter',
+                decoration: TextDecoration.lineThrough,
+              ),
             ),
-          ),
+            Text(
+              _formatPrice(displayPrice),
+              style: TextStyle(
+                color: const Color(0xFFB71C1C),
+                fontSize: r.font(12),
+                fontWeight: FontWeight.bold,
+                fontFamily: 'Inter',
+              ),
+            ),
+          ] else
+            Text(
+              _formatPrice(group['price'] as int),
+              style: TextStyle(
+                color: const Color(0xFF1D1B1B),
+                fontSize: r.font(12),
+                fontFamily: 'Inter',
+              ),
+            ),
           Text(
             'Stok: $totalStock',
             style: TextStyle(

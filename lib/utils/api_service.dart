@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 
 class ApiService {
   // Ganti dengan domain Niagahoster kamu
-  static const String _baseUrl = 'https://bukitshangrillaasri2.com/api/mobile';
+  static const String _baseUrl = 'https://linkstreammaart.com/api/mobile';
 
   // ─── Products ───────────────────────────────────────────────────────────────
 
@@ -61,11 +61,13 @@ class ApiService {
 
   /// [items] contoh: [{'id': 1, 'qty': 2}, {'id': 5, 'qty': 1}]
   /// [proofImagePath] path lokal foto bukti bayar Non Tunai (opsional)
+  /// [discountAmount] total diskon promo dalam rupiah (opsional)
   static Future<Map<String, dynamic>> createTransaction({
     required List<Map<String, dynamic>> items,
     required int paidAmount,
     required String paymentMethod,
     String? proofImagePath,
+    int discountAmount = 0,
   }) async {
     if (proofImagePath != null) {
       // Multipart request ketika ada foto bukti bayar
@@ -77,6 +79,7 @@ class ApiService {
       request.fields['items'] = jsonEncode(items);
       request.fields['paid_amount'] = paidAmount.toString();
       request.fields['payment_method'] = paymentMethod;
+      request.fields['discount_amount'] = discountAmount.toString();
       request.files.add(
         await http.MultipartFile.fromPath('payment_proof', proofImagePath),
       );
@@ -102,6 +105,7 @@ class ApiService {
               'items': items,
               'paid_amount': paidAmount,
               'payment_method': paymentMethod,
+              'discount_amount': discountAmount,
             }),
           )
           .timeout(const Duration(seconds: 20));
