@@ -173,8 +173,17 @@ class _RiwayatState extends State<Riwayat> {
       // Parse tanggal
       DateTime dateTime;
       try {
-        dateTime = DateTime.parse(
-          (data['created_at'] ?? '').toString().replaceFirst(' ', 'T'),
+        final rawDate = (data['created_at'] ?? '').toString();
+        // Format from server: "dd/MM/yyyy HH:mm"
+        final parts = rawDate.split(' ');
+        final dateParts = parts[0].split('/');
+        final timeParts = parts.length > 1 ? parts[1].split(':') : ['0', '0'];
+        dateTime = DateTime(
+          int.parse(dateParts[2]), // year
+          int.parse(dateParts[1]), // month
+          int.parse(dateParts[0]), // day
+          int.parse(timeParts[0]), // hour
+          int.parse(timeParts[1]), // minute
         );
       } catch (_) {
         dateTime = DateTime.now();
