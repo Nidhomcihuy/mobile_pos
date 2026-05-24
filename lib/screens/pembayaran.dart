@@ -822,7 +822,7 @@ class _PembayaranState extends State<Pembayaran> {
     );
   }
 
-  Widget _buildCashInput(int subtotal, Responsive r) {
+  Widget _buildCashInput(int grandTotal, Responsive r) {
     return Container(
       padding: const EdgeInsets.all(16),
       color: Colors.white,

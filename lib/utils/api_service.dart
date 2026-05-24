@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 
 class ApiService {
   // Ganti dengan domain Niagahoster kamu
-  static const String _baseUrl = 'https://linkstreammaart.com/api/mobile';
+  static const String _baseUrl = 'https://linkstreammart.com/api/mobile';
 
   // ─── Products ───────────────────────────────────────────────────────────────
 
