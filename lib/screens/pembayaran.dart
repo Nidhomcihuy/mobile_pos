@@ -52,12 +52,31 @@ class _PembayaranState extends State<Pembayaran> {
   }
 
   int _discountForItem(Map<String, dynamic> item) {
+    final price = item['price'] as int;
+    final batches = item['batches'] as List<Map<String, dynamic>>?;
+    if (batches != null && batches.isNotEmpty) {
+      // Hitung diskon per-batch: hanya batch yang punya promo yang dapat diskon
+      int total = 0;
+      for (final b in batches) {
+        final promo = b['promo'] as Map<String, dynamic>?;
+        if (promo == null) continue;
+        final qty = b['qty'] as int;
+        final type = promo['type'] as String? ?? '';
+        final value = (promo['discount_value'] as num?)?.toDouble() ?? 0.0;
+        if (type == 'percent') {
+          total += ((price * qty) * value / 100).round();
+        } else if (type == 'fixed') {
+          total += (value * qty).round().clamp(0, price * qty);
+        }
+      }
+      return total;
+    }
+    // Fallback: gunakan promo level item
     final promo = item['promo'] as Map<String, dynamic>?;
     if (promo == null) return 0;
     final type = promo['type'] as String? ?? '';
     final value = (promo['discount_value'] as num?)?.toDouble() ?? 0.0;
     final qty = item['quantity'] as int;
-    final price = item['price'] as int;
     if (type == 'percent') {
       return ((price * qty) * value / 100).round();
     } else if (type == 'fixed') {

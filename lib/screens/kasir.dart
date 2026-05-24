@@ -110,6 +110,7 @@ class _KasirState extends State<Kasir> {
         'id': p['id'],
         'stock': p['stock'] as int,
         'expires_at': p['expires_at'],
+        'promo': p['promo'],
       });
       groups[key]!['totalStock'] =
           (groups[key]!['totalStock'] as int) + (p['stock'] as int);
@@ -123,6 +124,9 @@ class _KasirState extends State<Kasir> {
         if (eb == null) return -1;
         return _parseExpiry(ea).compareTo(_parseExpiry(eb));
       });
+      // Update group promo dari batch pertama (expired terdekat - FIFO)
+      final sortedBatches = group['batches'] as List<Map<String, dynamic>>;
+      group['promo'] = sortedBatches.isNotEmpty ? sortedBatches.first['promo'] : null;
     }
     return groups.values.toList();
   }
@@ -145,6 +149,7 @@ class _KasirState extends State<Kasir> {
                 'stock': b['stock'] as int,
                 'qty': 0,
                 'expires_at': b['expires_at'],
+                'promo': b['promo'],
               },
             )
             .toList(),
