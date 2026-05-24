@@ -33,7 +33,7 @@ class _KasirState extends State<Kasir> {
     });
     try {
       final results = await Future.wait([
-        ApiService.fetchProducts(),
+        ApiService.fetchProducts(includeZeroStock: true),
         ApiService.fetchCategories(),
       ]);
       setState(() {
@@ -765,17 +765,44 @@ class _KasirState extends State<Kasir> {
               ),
             ),
           Text(
-            'Stok: $totalStock',
+            totalStock == 0 ? 'Stok Habis' : 'Stok: $totalStock',
             style: TextStyle(
-              color: const Color(0xFF1D1B1B),
+              color: totalStock == 0 ? Colors.grey : const Color(0xFF1D1B1B),
               fontSize: r.font(12),
               fontFamily: 'Inter',
+              fontWeight:
+                  totalStock == 0 ? FontWeight.bold : FontWeight.normal,
             ),
           ),
           SizedBox(height: r.space(6)),
           Padding(
             padding: EdgeInsets.symmetric(horizontal: r.space(16)),
-            child: quantity == 0
+            child: totalStock == 0
+                ? SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: null,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.grey.shade300,
+                        foregroundColor: Colors.grey.shade500,
+                        disabledBackgroundColor: Colors.grey.shade300,
+                        disabledForegroundColor: Colors.grey.shade500,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        padding: EdgeInsets.symmetric(vertical: r.space(8)),
+                        elevation: 0,
+                      ),
+                      child: Text(
+                        'Habis',
+                        style: TextStyle(
+                          fontSize: r.font(12),
+                          fontFamily: 'Inter',
+                        ),
+                      ),
+                    ),
+                  )
+                : quantity == 0
                 ? SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(

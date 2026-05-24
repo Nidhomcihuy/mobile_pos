@@ -31,7 +31,7 @@ class _DashboardState extends State<Dashboard> {
     });
     try {
       final results = await Future.wait([
-        ApiService.fetchProducts(),
+        ApiService.fetchProducts(includeZeroStock: true),
         ApiService.fetchCategories(),
       ]);
       setState(() {
@@ -518,25 +518,30 @@ class _DashboardState extends State<Dashboard> {
   Widget _buildProductCard(Map<String, dynamic> product, Responsive r) {
     final int stock = (product['stock'] as num? ?? 0).toInt();
     final int minStock = (product['min_stock'] as num? ?? 0).toInt();
-    final bool isLowStock = stock <= minStock && minStock > 0;
+    final bool isOutOfStock = stock == 0;
+    final bool isLowStock = !isOutOfStock && stock <= minStock && minStock > 0;
 
     return Stack(
       children: [
         Container(
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: isOutOfStock ? Colors.grey.shade100 : Colors.white,
             borderRadius: BorderRadius.circular(18),
             border: Border.all(
-              color: isLowStock
-                  ? Colors.orange.withValues(alpha: 0.8)
-                  : const Color(0xFFE53935).withValues(alpha: 0.4),
+              color: isOutOfStock
+                  ? Colors.grey.withValues(alpha: 0.5)
+                  : isLowStock
+                      ? Colors.orange.withValues(alpha: 0.8)
+                      : const Color(0xFFE53935).withValues(alpha: 0.4),
               width: isLowStock ? 2.0 : 1.5,
             ),
             boxShadow: [
               BoxShadow(
-                color: isLowStock
-                    ? Colors.orange.withValues(alpha: 0.15)
-                    : const Color(0xFFE53935).withValues(alpha: 0.08),
+                color: isOutOfStock
+                    ? Colors.grey.withValues(alpha: 0.08)
+                    : isLowStock
+                        ? Colors.orange.withValues(alpha: 0.15)
+                        : const Color(0xFFE53935).withValues(alpha: 0.08),
                 blurRadius: 8,
                 offset: const Offset(0, 2),
               ),
@@ -585,11 +590,15 @@ class _DashboardState extends State<Dashboard> {
               Text(
                 'Stok: $stock',
                 style: TextStyle(
-                  color: isLowStock
-                      ? Colors.orange.shade700
-                      : const Color(0xFF1D1B1B),
+                  color: isOutOfStock
+                      ? Colors.grey
+                      : isLowStock
+                          ? Colors.orange.shade700
+                          : const Color(0xFF1D1B1B),
                   fontSize: r.font(12),
-                  fontWeight: isLowStock ? FontWeight.bold : FontWeight.normal,
+                  fontWeight: (isOutOfStock || isLowStock)
+                      ? FontWeight.bold
+                      : FontWeight.normal,
                 ),
               ),
               SizedBox(height: r.space(8)),
@@ -623,6 +632,34 @@ class _DashboardState extends State<Dashboard> {
             ],
           ),
         ),
+        if (isOutOfStock)
+          Positioned(
+            top: 8,
+            right: 8,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+              decoration: BoxDecoration(
+                color: Colors.grey.shade600,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.remove_circle_outline,
+                      color: Colors.white, size: 12),
+                  const SizedBox(width: 3),
+                  Text(
+                    'Stok Habis',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: r.font(9),
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
         if (isLowStock)
           Positioned(
             top: 8,

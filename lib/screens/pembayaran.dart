@@ -863,7 +863,7 @@ class _PembayaranState extends State<Pembayaran> {
                 ),
               ),
             ),
-            onChanged: (_) => _calculateChange(grandTotal),
+            onChanged: (_) => _calculateChange(_grandTotal),
           ),
           SizedBox(height: 10),
           Row(
