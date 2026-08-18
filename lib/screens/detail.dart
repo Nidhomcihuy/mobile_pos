@@ -16,13 +16,12 @@ class Detail extends StatelessWidget {
         result = '.$result';
       }
     }
-    return 'Rp. $result';
+    return 'Rp $result';
   }
 
   @override
   Widget build(BuildContext context) {
     final r = Responsive.of(context);
-
     final Map<String, dynamic> product =
         (ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?) ??
         {
@@ -38,28 +37,23 @@ class Detail extends StatelessWidget {
     final bool isLow = stock <= minStock && minStock > 0;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFFFEBEE),
+      backgroundColor: const Color(0xFFF8F9FB),
       body: Column(
         children: [
           _buildHeader(r, context),
           Expanded(
             child: SingleChildScrollView(
-              padding: EdgeInsets.fromLTRB(
-                r.space(16),
-                r.space(16),
-                r.space(16),
-                r.space(24),
-              ),
+              padding: EdgeInsets.all(r.space(20)),
+              physics: const BouncingScrollPhysics(),
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  _buildImageCard(r, product, isLow),
-                  SizedBox(height: r.space(14)),
-                  _buildStatRow(r, product, isLow, stock, minStock),
-                  SizedBox(height: r.space(14)),
-                  _buildStockStatus(r, stock, minStock, isLow),
-                  SizedBox(height: r.space(14)),
-                  _buildInfoGrid(r, product),
+                  _buildMainImageCard(r, product, isLow),
+                  const SizedBox(height: 20),
+                  _buildPriceAndStockGrid(r, product, stock, minStock, isLow),
+                  const SizedBox(height: 20),
+                  _buildStatusBanner(r, stock, minStock, isLow),
+                  const SizedBox(height: 20),
+                  _buildDetailedInfoList(r, product),
                 ],
               ),
             ),
@@ -72,234 +66,72 @@ class Detail extends StatelessWidget {
   Widget _buildHeader(Responsive r, BuildContext context) {
     return Container(
       width: double.infinity,
-      padding: EdgeInsets.symmetric(
-        horizontal: r.space(20),
-        vertical: r.space(14),
-      ),
+      padding: EdgeInsets.fromLTRB(r.space(20), r.space(52), r.space(20), r.space(24)),
       decoration: const BoxDecoration(
-        color: Color(0xFFC62828),
-        borderRadius: BorderRadius.only(
-          bottomLeft: Radius.circular(24),
-          bottomRight: Radius.circular(24),
+        gradient: LinearGradient(
+          colors: [Color(0xFFD32F2F), Color(0xFFC62828)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
         ),
+        borderRadius: BorderRadius.only(bottomLeft: Radius.circular(40), bottomRight: Radius.circular(40)),
       ),
-      child: SafeArea(
-        bottom: false,
-        child: Row(
-          children: [
-            InkWell(
-              onTap: () => Navigator.pop(context),
-              borderRadius: BorderRadius.circular(10),
-              child: Container(
-                padding: EdgeInsets.symmetric(
-                  horizontal: r.space(14),
-                  vertical: r.space(8),
-                ),
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.2),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(
-                      Icons.arrow_back_ios_new,
-                      color: Colors.white,
-                      size: 16,
-                    ),
-                    SizedBox(width: r.space(4)),
-                    Text(
-                      'Kembali',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: r.font(14),
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            SizedBox(width: r.space(12)),
-            Expanded(
+      child: Row(
+        children: [
+          IconButton(
+            onPressed: () => Navigator.pop(context),
+            icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 22),
+          ),
+          const Expanded(
+            child: Center(
               child: Text(
                 'Detail Produk',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: r.font(20),
-                  fontWeight: FontWeight.w800,
-                  fontFamily: 'Inter',
-                ),
+                style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w900, fontFamily: 'Inter'),
               ),
             ),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Text(
-                  AppConfig.storeName,
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: r.font(13),
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                Text(
-                  AppConfig.todayDate,
-                  style: TextStyle(color: Colors.white70, fontSize: r.font(11)),
-                ),
-              ],
-            ),
-          ],
-        ),
+          ),
+          const SizedBox(width: 48),
+        ],
       ),
     );
   }
 
-  Widget _buildImageCard(
-    Responsive r,
-    Map<String, dynamic> product,
-    bool isLow,
-  ) {
+  Widget _buildMainImageCard(Responsive r, Map<String, dynamic> product, bool isLow) {
     final imageUrl = (product['image_url'] ?? '').toString();
-    final name = (product['name'] ?? '-').toString();
-    final category = (product['category'] ?? '-').toString();
-    final sku = (product['sku'] ?? '').toString();
-
     return Container(
+      width: double.infinity,
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: isLow
-              ? Colors.orange.withValues(alpha: 0.6)
-              : const Color(0xFFEF9A9A).withValues(alpha: 0.5),
-          width: 1.5,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.06),
-            blurRadius: 10,
-            offset: const Offset(0, 3),
-          ),
-        ],
+        borderRadius: BorderRadius.circular(32),
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 15, offset: const Offset(0, 5))],
       ),
       child: Column(
         children: [
-          if (isLow)
-            Container(
-              width: double.infinity,
-              padding: EdgeInsets.symmetric(vertical: r.space(8)),
-              decoration: const BoxDecoration(
-                color: Colors.orange,
-                borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(20),
-                  topRight: Radius.circular(20),
-                ),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(
-                    Icons.warning_amber_rounded,
-                    color: Colors.white,
-                    size: 18,
-                  ),
-                  SizedBox(width: r.space(6)),
-                  Text(
-                    'STOK MENIPIS — Segera Restock',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: r.font(13),
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
-              ),
+          Container(
+            height: r.space(220),
+            padding: const EdgeInsets.all(32),
+            child: Hero(
+              tag: 'prod-${product['id']}',
+              child: imageUrl.isNotEmpty
+                  ? Image.network(imageUrl, fit: BoxFit.contain, errorBuilder: (_, __, ___) => const Icon(Icons.inventory_2_rounded, size: 80, color: Color(0xFFC62828)))
+                  : const Icon(Icons.inventory_2_rounded, size: 80, color: Color(0xFFC62828)),
             ),
+          ),
           Padding(
-            padding: EdgeInsets.all(r.space(20)),
-            child: Row(
+            padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+            child: Column(
               children: [
-                Container(
-                  width: r.space(120),
-                  height: r.space(120),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFFFEBEE),
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: const Color(0xFFEF9A9A)),
-                  ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(16),
-                    child: imageUrl.isNotEmpty
-                        ? Image.network(
-                            imageUrl,
-                            fit: BoxFit.contain,
-                            errorBuilder: (_, e, _) => const Icon(
-                              Icons.inventory_2,
-                              size: 48,
-                              color: Color(0xFFC62828),
-                            ),
-                          )
-                        : const Icon(
-                            Icons.inventory_2,
-                            size: 48,
-                            color: Color(0xFFC62828),
-                          ),
-                  ),
+                Text(
+                  product['name'] ?? '-',
+                  style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w900, fontFamily: 'Inter'),
+                  textAlign: TextAlign.center,
                 ),
-                SizedBox(width: r.space(16)),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        name,
-                        style: TextStyle(
-                          fontSize: r.font(18),
-                          fontWeight: FontWeight.w800,
-                          color: Colors.black87,
-                        ),
-                      ),
-                      SizedBox(height: r.space(4)),
-                      Container(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: r.space(10),
-                          vertical: r.space(4),
-                        ),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFC62828).withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Text(
-                          category,
-                          style: TextStyle(
-                            fontSize: r.font(12),
-                            color: const Color(0xFFC62828),
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                      if (sku.isNotEmpty) ...[
-                        SizedBox(height: r.space(8)),
-                        Row(
-                          children: [
-                            Icon(
-                              Icons.qr_code,
-                              size: r.icon(14),
-                              color: Colors.grey,
-                            ),
-                            SizedBox(width: r.space(4)),
-                            Text(
-                              'SKU: $sku',
-                              style: TextStyle(
-                                fontSize: r.font(12),
-                                color: Colors.grey,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ],
+                const SizedBox(height: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                  decoration: BoxDecoration(color: const Color(0xFFC62828).withOpacity(0.08), borderRadius: BorderRadius.circular(20)),
+                  child: Text(
+                    product['category'] ?? '-',
+                    style: const TextStyle(color: Color(0xFFC62828), fontWeight: FontWeight.w800, fontSize: 13),
                   ),
                 ),
               ],
@@ -310,149 +142,60 @@ class Detail extends StatelessWidget {
     );
   }
 
-  Widget _buildStatRow(
-    Responsive r,
-    Map<String, dynamic> product,
-    bool isLow,
-    int stock,
-    int minStock,
-  ) {
+  Widget _buildPriceAndStockGrid(Responsive r, Map<String, dynamic> product, int stock, int minStock, bool isLow) {
     return Row(
       children: [
-        _buildStatCard(
-          r,
-          label: 'Harga',
-          value: _formatPrice((product['price'] as num? ?? 0).toInt()),
-          icon: Icons.payments,
-          iconColor: const Color(0xFFC62828),
-        ),
-        SizedBox(width: r.space(10)),
-        _buildStatCard(
-          r,
-          label: 'Stok',
-          value: '$stock pcs',
-          icon: Icons.inventory_2_outlined,
-          iconColor: isLow ? Colors.orange : Colors.green,
-          valueColor: isLow ? Colors.orange.shade700 : Colors.green.shade700,
-        ),
-        SizedBox(width: r.space(10)),
-        _buildStatCard(
-          r,
-          label: 'Min Stok',
-          value: '$minStock pcs',
-          icon: Icons.low_priority,
-          iconColor: Colors.blueGrey,
-        ),
+        _infoBox(r, 'Harga Jual', _formatPrice((product['price'] as num? ?? 0).toInt()), Icons.payments_rounded, const Color(0xFFC62828)),
+        const SizedBox(width: 12),
+        _infoBox(r, 'Stok Saat Ini', '$stock Pcs', Icons.inventory_2_rounded, isLow ? Colors.orange : Colors.green),
+        const SizedBox(width: 12),
+        _infoBox(r, 'Min. Stok', '$minStock Pcs', Icons.low_priority_rounded, Colors.blueGrey),
       ],
     );
   }
 
-  Widget _buildStatCard(
-    Responsive r, {
-    required String label,
-    required String value,
-    required IconData icon,
-    required Color iconColor,
-    Color? valueColor,
-  }) {
+  Widget _infoBox(Responsive r, String label, String value, IconData icon, Color color) {
     return Expanded(
       child: Container(
-        padding: EdgeInsets.symmetric(
-          vertical: r.space(12),
-          horizontal: r.space(8),
-        ),
+        padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: const Color(0xFFEF9A9A).withValues(alpha: 0.5),
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.04),
-              blurRadius: 6,
-              offset: const Offset(0, 2),
-            ),
-          ],
+          borderRadius: BorderRadius.circular(24),
+          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 10, offset: const Offset(0, 4))],
         ),
         child: Column(
           children: [
-            Icon(icon, color: iconColor, size: r.icon(22)),
-            SizedBox(height: r.space(4)),
-            Text(
-              label,
-              style: TextStyle(
-                color: Colors.grey,
-                fontSize: r.font(10),
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            SizedBox(height: r.space(2)),
-            FittedBox(
-              child: Text(
-                value,
-                style: TextStyle(
-                  color: valueColor ?? Colors.black87,
-                  fontSize: r.font(13),
-                  fontWeight: FontWeight.w800,
-                ),
-              ),
-            ),
+            Icon(icon, color: color, size: 20),
+            const SizedBox(height: 8),
+            Text(label, style: TextStyle(color: Colors.grey[500], fontSize: 10, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 4),
+            FittedBox(child: Text(value, style: TextStyle(fontWeight: FontWeight.w900, fontSize: 14, color: color))),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildStockStatus(Responsive r, int stock, int minStock, bool isLow) {
+  Widget _buildStatusBanner(Responsive r, int stock, int minStock, bool isLow) {
     return Container(
-      padding: EdgeInsets.all(r.space(16)),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: isLow
-            ? Colors.orange.withValues(alpha: 0.08)
-            : Colors.green.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: isLow ? Colors.orange.shade200 : Colors.green.shade200,
-        ),
+        color: isLow ? Colors.orange[50] : Colors.green[50],
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: isLow ? Colors.orange.withOpacity(0.2) : Colors.green.withOpacity(0.2)),
       ),
       child: Row(
         children: [
-          Container(
-            padding: EdgeInsets.all(r.space(10)),
-            decoration: BoxDecoration(
-              color: isLow
-                  ? Colors.orange.withValues(alpha: 0.15)
-                  : Colors.green.withValues(alpha: 0.15),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(
-              isLow ? Icons.warning_amber_rounded : Icons.check_circle_outline,
-              color: isLow ? Colors.orange : Colors.green,
-              size: r.icon(28),
-            ),
-          ),
-          SizedBox(width: r.space(14)),
+          Icon(isLow ? Icons.warning_amber_rounded : Icons.check_circle_outline_rounded, color: isLow ? Colors.orange[800] : Colors.green[800], size: 28),
+          const SizedBox(width: 16),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                Text(isLow ? 'Stok Perlu Ditambah' : 'Kondisi Stok Aman', style: TextStyle(fontWeight: FontWeight.w900, color: isLow ? Colors.orange[900] : Colors.green[900])),
                 Text(
-                  isLow ? 'Stok Menipis' : 'Stok Aman',
-                  style: TextStyle(
-                    color: isLow
-                        ? Colors.orange.shade800
-                        : Colors.green.shade800,
-                    fontSize: r.font(15),
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-                SizedBox(height: r.space(2)),
-                Text(
-                  isLow
-                      ? 'Stok saat ini ($stock pcs) ≤ batas minimum ($minStock pcs)'
-                      : 'Stok saat ini ($stock pcs) di atas batas minimum ($minStock pcs)',
-                  style: TextStyle(color: Colors.black54, fontSize: r.font(12)),
+                  isLow ? 'Stok di bawah batas minimum $minStock pcs.' : 'Jumlah stok mencukupi untuk transaksi.',
+                  style: TextStyle(fontSize: 12, color: isLow ? Colors.orange[700] : Colors.green[700]),
                 ),
               ],
             ),
@@ -462,129 +205,48 @@ class Detail extends StatelessWidget {
     );
   }
 
-  Widget _buildInfoGrid(Responsive r, Map<String, dynamic> product) {
-    final expiresAt = (product['expires_at'] ?? product['kadaluarsa'] ?? '')
-        .toString();
-    final barcode = (product['barcode'] ?? '').toString();
-    final sku = (product['sku'] ?? '').toString();
+  Widget _buildDetailedInfoList(Responsive r, Map<String, dynamic> product) {
+    final expiresAt = (product['expires_at'] ?? product['kadaluarsa'] ?? '').toString();
+    final sku = (product['sku'] ?? '-').toString();
+    final barcode = (product['barcode'] ?? '-').toString();
     final ukuran = (product['ukuran'] ?? '').toString();
     final satuan = (product['satuan'] ?? '').toString();
 
-    final rows = <_InfoRow>[
-      if (expiresAt.isNotEmpty)
-        _InfoRow(
-          Icons.event,
-          'Kadaluarsa',
-          expiresAt,
-          _isNearExpiry(expiresAt) ? Colors.red : Colors.black87,
-        ),
-      if (ukuran.isNotEmpty || satuan.isNotEmpty)
-        _InfoRow(
-          Icons.straighten,
-          'Kemasan',
-          [ukuran, satuan].where((s) => s.isNotEmpty).join(' '),
-          Colors.black87,
-        ),
-      if (sku.isNotEmpty) _InfoRow(Icons.tag, 'SKU', sku, Colors.black87),
-      if (barcode.isNotEmpty)
-        _InfoRow(Icons.qr_code_2, 'Barcode', barcode, Colors.black87),
-    ];
-
-    if (rows.isEmpty) return const SizedBox.shrink();
-
     return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: const Color(0xFFEF9A9A).withValues(alpha: 0.5),
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 6,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(32), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 15)]),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Padding(
-            padding: EdgeInsets.fromLTRB(
-              r.space(16),
-              r.space(12),
-              r.space(16),
-              r.space(8),
-            ),
-            child: Row(
-              children: [
-                Icon(
-                  Icons.info_outline,
-                  color: const Color(0xFFC62828),
-                  size: r.icon(18),
-                ),
-                SizedBox(width: r.space(8)),
-                Text(
-                  'Informasi Lainnya',
-                  style: TextStyle(
-                    fontSize: r.font(14),
-                    fontWeight: FontWeight.w700,
-                    color: Colors.black87,
-                  ),
-                ),
-              ],
-            ),
+          const Row(
+            children: [
+              Icon(Icons.info_outline_rounded, color: Color(0xFFC62828), size: 18),
+              SizedBox(width: 8),
+              Text('Informasi Inventaris', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 15)),
+            ],
           ),
-          const Divider(height: 1, color: Color(0xFFEF9A9A)),
-          ...rows.asMap().entries.map((entry) {
-            final row = entry.value;
-            final isLast = entry.key == rows.length - 1;
-            return Column(
-              children: [
-                Padding(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: r.space(16),
-                    vertical: r.space(12),
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(
-                        row.icon,
-                        size: r.icon(18),
-                        color: Colors.grey.shade500,
-                      ),
-                      SizedBox(width: r.space(12)),
-                      Expanded(
-                        child: Text(
-                          row.label,
-                          style: TextStyle(
-                            color: Colors.grey,
-                            fontSize: r.font(13),
-                          ),
-                        ),
-                      ),
-                      Text(
-                        row.value,
-                        style: TextStyle(
-                          color: row.valueColor,
-                          fontSize: r.font(13),
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                if (!isLast)
-                  Divider(
-                    height: 1,
-                    indent: r.space(46),
-                    color: Colors.grey.shade100,
-                  ),
-              ],
-            );
-          }),
+          const SizedBox(height: 24),
+          _infoRow('SKU Produk', sku),
+          _infoRow('Barcode', barcode),
+          _infoRow('Kemasan', [ukuran, satuan].where((s) => s.isNotEmpty).join(' ')),
+          _infoRow('Tgl Kadaluarsa', expiresAt, isLast: true, color: _isNearExpiry(expiresAt) ? Colors.red : null),
         ],
       ),
+    );
+  }
+
+  Widget _infoRow(String label, String value, {bool isLast = false, Color? color}) {
+    return Column(
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(label, style: TextStyle(color: Colors.grey[500], fontWeight: FontWeight.w600, fontSize: 13)),
+            Text(value.isEmpty ? '-' : value, style: TextStyle(fontWeight: FontWeight.w800, fontSize: 13, color: color ?? Colors.black87)),
+          ],
+        ),
+        if (!isLast) Padding(padding: const EdgeInsets.symmetric(vertical: 12), child: Divider(color: Colors.grey[100])),
+      ],
     );
   }
 
@@ -592,25 +254,10 @@ class Detail extends StatelessWidget {
     try {
       final parts = dateStr.split('/');
       if (parts.length == 3) {
-        final d = DateTime(
-          int.parse(parts[2]),
-          int.parse(parts[1]),
-          int.parse(parts[0]),
-        );
+        final d = DateTime(int.parse(parts[2]), int.parse(parts[1]), int.parse(parts[0]));
         return d.isBefore(DateTime.now().add(const Duration(days: 30)));
       }
-      final d = DateTime.parse(dateStr);
-      return d.isBefore(DateTime.now().add(const Duration(days: 30)));
-    } catch (_) {
       return false;
-    }
+    } catch (_) { return false; }
   }
-}
-
-class _InfoRow {
-  final IconData icon;
-  final String label;
-  final String value;
-  final Color valueColor;
-  const _InfoRow(this.icon, this.label, this.value, this.valueColor);
 }

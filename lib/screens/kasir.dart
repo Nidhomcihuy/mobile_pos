@@ -28,9 +28,7 @@ class _KasirState extends State<Kasir> {
   }
 
   Future<void> _loadData() async {
-    setState(() {
-      _isLoading = true;
-    });
+    setState(() { _isLoading = true; });
     try {
       final results = await Future.wait([
         ApiService.fetchProducts(includeZeroStock: true),
@@ -42,9 +40,7 @@ class _KasirState extends State<Kasir> {
         _isLoading = false;
       });
     } catch (e) {
-      setState(() {
-        _isLoading = false;
-      });
+      setState(() { _isLoading = false; });
     }
   }
 
@@ -59,19 +55,13 @@ class _KasirState extends State<Kasir> {
         result = '.$result';
       }
     }
-    return 'Rp. $result';
+    return 'Rp $result';
   }
 
   List<Map<String, dynamic>> get _filteredProducts {
     return _products.where((product) {
-      final matchCategory =
-          _selectedCategory == 'Semua' ||
-          product['category'] == _selectedCategory;
-      final matchSearch =
-          _searchQuery.isEmpty ||
-          (product['name'] as String).toLowerCase().contains(
-            _searchQuery.toLowerCase(),
-          );
+      final matchCategory = _selectedCategory == 'Semua' || product['category'] == _selectedCategory;
+      final matchSearch = _searchQuery.isEmpty || (product['name'] as String).toLowerCase().contains(_searchQuery.toLowerCase());
       return matchCategory && matchSearch;
     }).toList();
   }
@@ -82,8 +72,6 @@ class _KasirState extends State<Kasir> {
     return DateTime(int.parse(p[2]), int.parse(p[1]), int.parse(p[0]));
   }
 
-  /// Mengelompokkan produk berdasarkan nama + harga yang sama menjadi satu kartu.
-  /// Batch diurutkan FIFO: expires_at paling dekat duluan (null = paling akhir).
   List<Map<String, dynamic>> get _groupedProducts {
     final Map<String, Map<String, dynamic>> groups = {};
     for (final p in _filteredProducts) {
@@ -107,13 +95,9 @@ class _KasirState extends State<Kasir> {
         };
       }
       (groups[key]!['batches'] as List<Map<String, dynamic>>).add({
-        'id': p['id'],
-        'stock': p['stock'] as int,
-        'expires_at': p['expires_at'],
-        'promo': p['promo'],
+        'id': p['id'], 'stock': p['stock'] as int, 'expires_at': p['expires_at'], 'promo': p['promo'],
       });
-      groups[key]!['totalStock'] =
-          (groups[key]!['totalStock'] as int) + (p['stock'] as int);
+      groups[key]!['totalStock'] = (groups[key]!['totalStock'] as int) + (p['stock'] as int);
     }
     for (final group in groups.values) {
       (group['batches'] as List<Map<String, dynamic>>).sort((a, b) {
@@ -124,35 +108,19 @@ class _KasirState extends State<Kasir> {
         if (eb == null) return -1;
         return _parseExpiry(ea).compareTo(_parseExpiry(eb));
       });
-      // Update group promo dari batch pertama (expired terdekat - FIFO)
       final sortedBatches = group['batches'] as List<Map<String, dynamic>>;
       group['promo'] = sortedBatches.isNotEmpty ? sortedBatches.first['promo'] : null;
     }
     return groups.values.toList();
   }
 
-  /// Tambah 1 qty ke cart untuk group: isi batch FIFO (expired terdekat dulu).
   void _addGroupToCart(Map<String, dynamic> group) {
     final key = group['groupKey'] as String;
     final batches = group['batches'] as List<Map<String, dynamic>>;
     if (!_cart.containsKey(key)) {
       _cart[key] = {
-        'groupKey': key,
-        'name': group['name'],
-        'price': group['price'],
-        'promo': group['promo'],
-        'quantity': 0,
-        'batches': batches
-            .map(
-              (b) => {
-                'id': b['id'],
-                'stock': b['stock'] as int,
-                'qty': 0,
-                'expires_at': b['expires_at'],
-                'promo': b['promo'],
-              },
-            )
-            .toList(),
+        'groupKey': key, 'name': group['name'], 'price': group['price'], 'promo': group['promo'], 'quantity': 0,
+        'batches': batches.map((b) => { 'id': b['id'], 'stock': b['stock'] as int, 'qty': 0, 'expires_at': b['expires_at'], 'promo': b['promo'], }).toList(),
       };
     }
     final cartBatches = _cart[key]!['batches'] as List<Map<String, dynamic>>;
@@ -165,7 +133,6 @@ class _KasirState extends State<Kasir> {
     }
   }
 
-  /// Kurangi 1 qty dari cart: kurangi dari batch paling belakang (undo FIFO).
   void _removeGroupFromCart(String key) {
     if (!_cart.containsKey(key)) return;
     final cartBatches = _cart[key]!['batches'] as List<Map<String, dynamic>>;
@@ -176,21 +143,17 @@ class _KasirState extends State<Kasir> {
         break;
       }
     }
-    if ((_cart[key]!['quantity'] as int) <= 0) {
-      _cart.remove(key);
-    }
+    if ((_cart[key]!['quantity'] as int) <= 0) { _cart.remove(key); }
   }
 
-  int get _totalItems {
-    return _cart.values.fold(0, (sum, item) => sum + (item['quantity'] as int));
-  }
+  int get _totalItems { return _cart.values.fold(0, (sum, item) => sum + (item['quantity'] as int)); }
 
   @override
   Widget build(BuildContext context) {
     final r = Responsive.of(context);
 
     return Scaffold(
-      backgroundColor: const Color(0xFFFFEBEE),
+      backgroundColor: const Color(0xFFF8F9FB),
       body: Stack(
         children: [
           Column(
@@ -202,11 +165,11 @@ class _KasirState extends State<Kasir> {
                   padding: EdgeInsets.symmetric(horizontal: r.space(20)),
                   child: Column(
                     children: [
-                      SizedBox(height: r.space(16)),
+                      SizedBox(height: r.space(20)),
                       _buildSearchBar(r),
-                      SizedBox(height: r.space(14)),
+                      SizedBox(height: r.space(16)),
                       _buildCategoryFilters(r),
-                      SizedBox(height: r.space(18)),
+                      SizedBox(height: r.space(20)),
                       Expanded(child: _buildProductGrid(r)),
                     ],
                   ),
@@ -218,45 +181,30 @@ class _KasirState extends State<Kasir> {
             Positioned(
               bottom: r.space(24),
               right: r.space(24),
-              child: FloatingActionButton.extended(
-                onPressed: () {
-                  // Flatten grouped cart ke list item per batch untuk pembayaran
-                  final pembayaranItems = <Map<String, dynamic>>[];
-                  for (final entry in _cart.values) {
-                    final cartBatches =
-                        entry['batches'] as List<Map<String, dynamic>>;
-                    final activeBatches = cartBatches
-                        .where((b) => (b['qty'] as int) > 0)
-                        .map((b) => Map<String, dynamic>.from(b))
-                        .toList();
-                    if (activeBatches.isEmpty) continue;
-                    final totalQty = activeBatches.fold(
-                      0,
-                      (s, b) => s + (b['qty'] as int),
-                    );
-                    pembayaranItems.add({
-                      'name': entry['name'],
-                      'price': entry['price'],
-                      'promo': entry['promo'],
-                      'quantity': totalQty,
-                      'batches': activeBatches,
-                    });
-                  }
-                  Navigator.pushNamed(
-                    context,
-                    '/pembayaran',
-                    arguments: pembayaranItems,
-                  );
-                },
-                backgroundColor: const Color(0xFFB71C1C),
-                icon: const Icon(Icons.shopping_cart, color: Colors.white),
-                label: Text(
-                  'Keranjang ($_totalItems)',
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                    fontFamily: 'Inter',
-                  ),
+              child: Container(
+                decoration: BoxDecoration(
+                  boxShadow: [
+                    BoxShadow(color: const Color(0xFFB71C1C).withOpacity(0.3), blurRadius: 15, offset: const Offset(0, 5)),
+                  ],
+                ),
+                child: FloatingActionButton.extended(
+                  onPressed: () {
+                    final pembayaranItems = <Map<String, dynamic>>[];
+                    for (final entry in _cart.values) {
+                      final cartBatches = entry['batches'] as List<Map<String, dynamic>>;
+                      final activeBatches = cartBatches.where((b) => (b['qty'] as int) > 0).map((b) => Map<String, dynamic>.from(b)).toList();
+                      if (activeBatches.isEmpty) continue;
+                      final totalQty = activeBatches.fold(0, (s, b) => s + (b['qty'] as int));
+                      pembayaranItems.add({
+                        'name': entry['name'], 'price': entry['price'], 'promo': entry['promo'], 'quantity': totalQty, 'batches': activeBatches,
+                      });
+                    }
+                    Navigator.pushNamed(context, '/pembayaran', arguments: pembayaranItems);
+                  },
+                  backgroundColor: const Color(0xFFC62828),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                  icon: const Icon(Icons.shopping_basket_rounded, color: Colors.white),
+                  label: Text('Bayar ($_totalItems)', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontFamily: 'Inter', fontSize: 16)),
                 ),
               ),
             ),
@@ -268,87 +216,44 @@ class _KasirState extends State<Kasir> {
   Widget _buildHeader(Responsive r) {
     return Container(
       width: double.infinity,
-      padding: EdgeInsets.symmetric(
-        horizontal: r.space(20),
-        vertical: r.space(14),
-      ),
+      padding: EdgeInsets.fromLTRB(r.space(20), r.space(52), r.space(20), r.space(24)),
       decoration: const BoxDecoration(
-        color: Color(0xFFC62828),
-        borderRadius: BorderRadius.only(
-          bottomLeft: Radius.circular(24),
-          bottomRight: Radius.circular(24),
-        ),
+        gradient: LinearGradient(colors: [Color(0xFFD32F2F), Color(0xFFB71C1C)], begin: Alignment.topLeft, end: Alignment.bottomRight),
+        borderRadius: BorderRadius.only(bottomLeft: Radius.circular(40), bottomRight: Radius.circular(40)),
+        boxShadow: [BoxShadow(color: Colors.black26, blurRadius: 15, offset: Offset(0, 5))],
       ),
       child: SafeArea(
-        bottom: false,
+        top: false, bottom: false,
         child: Row(
           children: [
             Container(
-              width: r.icon(52),
-              height: r.icon(52),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(14),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.1),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
+              padding: const EdgeInsets.all(4),
+              decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16)),
               child: ClipRRect(
-                borderRadius: BorderRadius.circular(14),
-                child: Image.asset(AppConfig.storeLogo, fit: BoxFit.cover),
+                borderRadius: BorderRadius.circular(12),
+                child: Image.asset(AppConfig.storeLogo, width: r.icon(50), height: r.icon(50), fit: BoxFit.cover),
               ),
             ),
-            SizedBox(width: r.space(12)),
+            SizedBox(width: r.space(16)),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    AppConfig.storeName,
-                    style: TextStyle(
-                      color: const Color(0xFFFFFFFF),
-                      fontSize: r.font(22),
-                      fontWeight: FontWeight.w800,
-                      fontFamily: 'Inter',
-                    ),
-                  ),
-                  Text(
-                    AppConfig.storeAddress,
-                    style: TextStyle(
-                      color: const Color(0xFFFFFFFF),
-                      fontSize: r.font(14),
-                      fontFamily: 'Inter',
-                    ),
-                    overflow: TextOverflow.ellipsis,
+                  Text(AppConfig.storeName, style: TextStyle(color: Colors.white, fontSize: r.font(22), fontWeight: FontWeight.w900, fontFamily: 'Inter')),
+                  Row(
+                    children: [
+                      const Icon(Icons.person, color: Colors.white70, size: 14),
+                      const SizedBox(width: 4),
+                      Text(AppConfig.cashierName, style: TextStyle(color: Colors.white70, fontSize: r.font(14), fontFamily: 'Inter')),
+                    ],
                   ),
                 ],
               ),
             ),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Text(
-                  'Kasir: ${AppConfig.cashierName}',
-                  style: TextStyle(
-                    color: const Color(0xFFFFFFFF),
-                    fontSize: r.font(18),
-                    fontWeight: FontWeight.w800,
-                    fontFamily: 'Inter',
-                  ),
-                ),
-                Text(
-                  AppConfig.todayDate,
-                  style: TextStyle(
-                    color: const Color(0xFFFFFFFF),
-                    fontSize: r.font(14),
-                    fontFamily: 'Inter',
-                  ),
-                ),
-              ],
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(color: Colors.white.withOpacity(0.15), borderRadius: BorderRadius.circular(20)),
+              child: Text(AppConfig.todayDate, style: TextStyle(color: Colors.white, fontSize: r.font(12), fontWeight: FontWeight.bold, fontFamily: 'Inter')),
             ),
           ],
         ),
@@ -359,73 +264,39 @@ class _KasirState extends State<Kasir> {
   Widget _buildNavBar(BuildContext context, Responsive r) {
     final navItems = ['Dashboard', 'Kasir', 'Riwayat'];
     const selectedIndex = 1;
-
     return Container(
-      margin: EdgeInsets.only(
-        left: r.space(20),
-        right: r.space(20),
-        top: r.space(12),
-      ),
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+      margin: EdgeInsets.fromLTRB(r.space(20), r.space(16), r.space(20), 0),
+      padding: const EdgeInsets.all(6),
       decoration: BoxDecoration(
-        color: const Color(0xFFC62828),
-        borderRadius: BorderRadius.circular(14),
+        color: Colors.white, borderRadius: BorderRadius.circular(20),
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 4))],
       ),
       child: Row(
         children: [
           ...List.generate(navItems.length, (index) {
             final isSelected = index == selectedIndex;
             return Expanded(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 4),
-                child: InkWell(
-                  onTap: () {
-                    if (!isSelected) {
-                      Navigator.pushReplacementNamed(
-                        context,
-                        '/${navItems[index].toLowerCase()}',
-                      );
-                    }
-                  },
-                  borderRadius: BorderRadius.circular(10),
-                  child: Container(
-                    padding: EdgeInsets.symmetric(vertical: r.space(10)),
-                    decoration: BoxDecoration(
-                      color: isSelected
-                          ? const Color(0xFFFFFFFF).withValues(alpha: 0.25)
-                          : Colors.transparent,
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    alignment: Alignment.center,
-                    child: Text(
-                      navItems[index],
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: r.font(16),
-                        fontWeight: isSelected
-                            ? FontWeight.w600
-                            : FontWeight.w400,
-                        fontFamily: 'Inter',
-                      ),
-                    ),
-                  ),
+              child: InkWell(
+                onTap: () { if (!isSelected) Navigator.pushReplacementNamed(context, '/${navItems[index].toLowerCase()}'); },
+                borderRadius: BorderRadius.circular(15),
+                child: Container(
+                  padding: EdgeInsets.symmetric(vertical: r.space(10)),
+                  decoration: BoxDecoration(color: isSelected ? const Color(0xFFC62828) : Colors.transparent, borderRadius: BorderRadius.circular(15)),
+                  alignment: Alignment.center,
+                  child: Text(navItems[index], style: TextStyle(color: isSelected ? Colors.white : Colors.grey[600], fontSize: r.font(15), fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600, fontFamily: 'Inter')),
                 ),
               ),
             );
           }),
+          Container(width: 1, height: 24, color: Colors.grey[200], margin: const EdgeInsets.symmetric(horizontal: 4)),
           IconButton(
-            icon: const Icon(Icons.logout, color: Colors.white),
-            tooltip: 'Logout',
+            icon: Icon(Icons.logout_rounded, color: Colors.red[700]),
             onPressed: () async {
               final prefs = await SharedPreferences.getInstance();
               final token = prefs.getString('auth_token') ?? '';
-              try {
-                await ApiService.logout(token);
-              } catch (_) {}
+              try { await ApiService.logout(token); } catch (_) {}
               await prefs.remove('auth_token');
-              if (context.mounted) {
-                Navigator.pushReplacementNamed(context, '/login');
-              }
+              if (context.mounted) Navigator.pushReplacementNamed(context, '/login');
             },
           ),
         ],
@@ -434,83 +305,32 @@ class _KasirState extends State<Kasir> {
   }
 
   Future<void> _openScanner() async {
-    final scanned = await Navigator.push<String>(
-      context,
-      MaterialPageRoute(builder: (_) => const _BarcodeScannerScreen()),
-    );
+    final scanned = await Navigator.push<String>(context, MaterialPageRoute(builder: (_) => const _BarcodeScannerScreen()));
     if (scanned == null || scanned.isEmpty) return;
-
-    // Cari produk berdasarkan barcode, SKU, atau nama
     final found = _products.firstWhere(
-      (p) =>
-          (p['barcode'] as String?)?.toLowerCase() == scanned.toLowerCase() ||
-          (p['sku'] as String?)?.toLowerCase() == scanned.toLowerCase() ||
-          (p['name'] as String).toLowerCase().contains(scanned.toLowerCase()),
+      (p) => (p['barcode'] as String?)?.toLowerCase() == scanned.toLowerCase() || (p['sku'] as String?)?.toLowerCase() == scanned.toLowerCase() || (p['name'] as String).toLowerCase().contains(scanned.toLowerCase()),
       orElse: () => {},
     );
-
     if (found.isEmpty) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Produk "$scanned" tidak ditemukan'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Produk "$scanned" tidak ditemukan'), backgroundColor: Colors.red));
       return;
     }
-
     final name = found['name'] as String;
     final price = found['price'] as int;
     final ukuran = (found['ukuran'] ?? '').toString();
     final satuan = (found['satuan'] ?? '').toString();
     final groupKey = '${name}__${price}__${ukuran}__$satuan';
-    // Kumpulkan semua batch produk dengan nama+harga+ukuran+satuan sama, urutkan FIFO
-    final groupBatches =
-        _products
-            .where(
-              (p) =>
-                  (p['name'] ?? '') == name &&
-                  (p['price'] as int) == price &&
-                  (p['ukuran'] ?? '') == ukuran &&
-                  (p['satuan'] ?? '') == satuan,
-            )
-            .map(
-              (p) => {
-                'id': p['id'],
-                'stock': p['stock'] as int,
-                'expires_at': p['expires_at'],
-              },
-            )
-            .toList()
-          ..sort((a, b) {
-            final ea = a['expires_at'] as String?;
-            final eb = b['expires_at'] as String?;
-            if (ea == null && eb == null) return 0;
-            if (ea == null) return 1;
-            if (eb == null) return -1;
-            return _parseExpiry(ea).compareTo(_parseExpiry(eb));
-          });
-    setState(() {
-      _addGroupToCart({
-        'groupKey': groupKey,
-        'name': name,
-        'price': price,
-        'ukuran': ukuran,
-        'satuan': satuan,
-        'promo': found['promo'],
-        'batches': groupBatches,
+    final groupBatches = _products.where((p) => (p['name'] ?? '') == name && (p['price'] as int) == price && (p['ukuran'] ?? '') == ukuran && (p['satuan'] ?? '') == satuan).map((p) => { 'id': p['id'], 'stock': p['stock'] as int, 'expires_at': p['expires_at'], }).toList()
+      ..sort((a, b) {
+        final ea = a['expires_at'] as String?; final eb = b['expires_at'] as String?;
+        if (ea == null && eb == null) return 0;
+        if (ea == null) return 1; if (eb == null) return -1;
+        return _parseExpiry(ea).compareTo(_parseExpiry(eb));
       });
-    });
-
+    setState(() { _addGroupToCart({ 'groupKey': groupKey, 'name': name, 'price': price, 'ukuran': ukuran, 'satuan': satuan, 'promo': found['promo'], 'batches': groupBatches, }); });
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('"$name" ditambahkan ke keranjang'),
-        backgroundColor: Colors.green,
-        duration: const Duration(seconds: 1),
-      ),
-    );
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('"$name" ditambahkan'), backgroundColor: Colors.green, duration: const Duration(seconds: 1)));
   }
 
   Widget _buildSearchBar(Responsive r) {
@@ -518,50 +338,27 @@ class _KasirState extends State<Kasir> {
       children: [
         Expanded(
           child: Container(
-            decoration: BoxDecoration(
-              color: const Color(0xFFFFFFFF),
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: const Color(0xFFD9D9D9), width: 2),
-            ),
+            decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 10, offset: const Offset(0, 4))]),
             child: TextField(
               onChanged: (value) => setState(() => _searchQuery = value),
-              style: TextStyle(fontSize: r.font(16), fontFamily: 'Inter'),
               decoration: InputDecoration(
-                hintText: 'cari produk',
-                hintStyle: TextStyle(
-                  color: const Color(0xFF696969),
-                  fontSize: r.font(16),
-                ),
-                prefixIcon: Icon(
-                  Icons.search,
-                  color: const Color(0xFF696969),
-                  size: r.icon(24),
-                ),
+                hintText: 'Cari produk...',
+                hintStyle: TextStyle(color: Colors.grey[400], fontSize: r.font(15)),
+                prefixIcon: Icon(Icons.search_rounded, color: const Color(0xFFC62828), size: r.icon(22)),
                 border: InputBorder.none,
-                contentPadding: EdgeInsets.symmetric(
-                  horizontal: r.space(16),
-                  vertical: r.space(12),
-                ),
+                contentPadding: EdgeInsets.symmetric(horizontal: r.space(16), vertical: r.space(14)),
               ),
             ),
           ),
         ),
-        SizedBox(width: r.space(10)),
-        // Tombol scan barcode
+        SizedBox(width: r.space(12)),
         InkWell(
           onTap: _openScanner,
-          borderRadius: BorderRadius.circular(10),
+          borderRadius: BorderRadius.circular(16),
           child: Container(
-            padding: EdgeInsets.all(r.space(12)),
-            decoration: BoxDecoration(
-              color: const Color(0xFFB71C1C),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Icon(
-              Icons.qr_code_scanner,
-              color: Colors.white,
-              size: r.icon(24),
-            ),
+            padding: EdgeInsets.all(r.space(14)),
+            decoration: BoxDecoration(color: const Color(0xFFC62828), borderRadius: BorderRadius.circular(16), boxShadow: [BoxShadow(color: const Color(0xFFC62828).withOpacity(0.2), blurRadius: 8, offset: const Offset(0, 4))]),
+            child: Icon(Icons.qr_code_scanner_rounded, color: Colors.white, size: r.icon(22)),
           ),
         ),
       ],
@@ -570,59 +367,40 @@ class _KasirState extends State<Kasir> {
 
   Widget _buildCategoryFilters(Responsive r) {
     final allItems = ['Semua', ..._categories];
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: Row(
-        children: allItems.map((name) {
+    return SizedBox(
+      height: r.space(40),
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        itemCount: allItems.length,
+        separatorBuilder: (_, __) => const SizedBox(width: 10),
+        itemBuilder: (context, index) {
+          final name = allItems[index];
           final isSelected = _selectedCategory == name;
-          return Padding(
-            padding: EdgeInsets.only(right: r.space(10)),
-            child: InkWell(
-              onTap: () => setState(() => _selectedCategory = name),
-              borderRadius: BorderRadius.circular(10),
-              child: Container(
-                padding: EdgeInsets.symmetric(
-                  horizontal: r.space(16),
-                  vertical: r.space(10),
-                ),
-                decoration: BoxDecoration(
-                  color: isSelected
-                      ? const Color(0xFFB71C1C)
-                      : const Color(0xFFB71C1C).withValues(alpha: 0.6),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Text(
-                  name,
-                  style: TextStyle(
-                    color: const Color(0xFFFFFFFF),
-                    fontSize: r.font(14),
-                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-                    fontFamily: 'Inter',
-                  ),
-                ),
+          return InkWell(
+            onTap: () => setState(() => _selectedCategory = name),
+            borderRadius: BorderRadius.circular(12),
+            child: Container(
+              padding: EdgeInsets.symmetric(horizontal: r.space(20)),
+              decoration: BoxDecoration(
+                color: isSelected ? const Color(0xFFC62828) : Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: isSelected ? Colors.transparent : Colors.grey[200]!),
               ),
+              alignment: Alignment.center,
+              child: Text(name, style: TextStyle(color: isSelected ? Colors.white : Colors.grey[700], fontSize: r.font(13), fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600, fontFamily: 'Inter')),
             ),
           );
-        }).toList(),
+        },
       ),
     );
   }
 
   Widget _buildProductGrid(Responsive r) {
-    if (_isLoading) {
-      return const Center(
-        child: CircularProgressIndicator(color: Color(0xFFC62828)),
-      );
-    }
+    if (_isLoading) return const Center(child: CircularProgressIndicator(color: Color(0xFFC62828)));
     final groups = _groupedProducts;
     return GridView.builder(
       padding: EdgeInsets.only(bottom: r.space(80)),
-      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: r.gridColumns,
-        mainAxisSpacing: r.space(16),
-        crossAxisSpacing: r.space(16),
-        childAspectRatio: 0.72,
-      ),
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: r.gridColumns, mainAxisSpacing: r.space(16), crossAxisSpacing: r.space(16), childAspectRatio: 0.72),
       itemCount: groups.length,
       itemBuilder: (context, index) => _buildProductCard(groups[index], r),
     );
@@ -630,351 +408,89 @@ class _KasirState extends State<Kasir> {
 
   Widget _buildProductCard(Map<String, dynamic> group, Responsive r) {
     final String productName = group['name'] as String;
-    final String ukuran = (group['ukuran'] ?? '').toString();
-    final String satuan = (group['satuan'] ?? '').toString();
-    final String subtitle = [
-      ukuran,
-      satuan,
-    ].where((s) => s.isNotEmpty).join(' ');
+    final String subtitle = [(group['ukuran'] ?? '').toString(), (group['satuan'] ?? '').toString()].where((s) => s.isNotEmpty).join(' ');
     final String groupKey = group['groupKey'] as String;
     final int totalStock = group['totalStock'] as int;
     final int quantity = _cart[groupKey]?['quantity'] as int? ?? 0;
     final promo = group['promo'] as Map<String, dynamic>?;
-    final int displayPrice = promo != null
-        ? (promo['discounted_price'] as num).toInt()
-        : (group['price'] as int);
+    final int displayPrice = promo != null ? (promo['discounted_price'] as num).toInt() : (group['price'] as int);
+
     return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(
-          color: const Color(0xFFE53935).withValues(alpha: 0.4),
-          width: 1.5,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFFE53935).withValues(alpha: 0.08),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
+      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(24), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 10, offset: const Offset(0, 4))]),
+      child: Stack(
         children: [
-          Expanded(
-            flex: 3,
-            child: Stack(
-              children: [
-                Padding(
-                  padding: EdgeInsets.all(r.space(12)),
-                  child: group['image_url'] != null
-                      ? Image.network(
-                          group['image_url'] as String,
-                          fit: BoxFit.contain,
-                          loadingBuilder: (context, child, loadingProgress) {
-                            if (loadingProgress == null) return child;
-                            return const Center(
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: Color(0xFFC62828),
-                              ),
-                            );
-                          },
-                          errorBuilder: (context, error, stackTrace) =>
-                              const Icon(
-                            Icons.inventory_2,
-                            size: 48,
-                            color: Color(0xFFC62828),
-                          ),
-                        )
-                      : const Icon(
-                          Icons.inventory_2,
-                          size: 48,
-                          color: Color(0xFFC62828),
-                        ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Container(
+                  width: double.infinity, margin: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(color: const Color(0xFFF5F5F7), borderRadius: BorderRadius.circular(18)),
+                  child: Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(12.0),
+                      child: group['image_url'] != null ? Image.network(group['image_url'] as String, fit: BoxFit.contain, errorBuilder: (_, __, ___) => const Icon(Icons.inventory_2_rounded, size: 40, color: Color(0xFFC62828))) : const Icon(Icons.inventory_2_rounded, size: 40, color: Color(0xFFC62828)),
+                    ),
+                  ),
                 ),
-                if (promo != null)
-                  Positioned(
-                    top: 6,
-                    left: 6,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 6, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFE53935),
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      child: Text(
-                        promo['label'] as String,
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: r.font(9),
-                          fontWeight: FontWeight.bold,
-                          fontFamily: 'Inter',
-                        ),
-                      ),
-                    ),
-                  ),
-              ],
-            ),
-          ),
-          Text(
-            productName,
-            style: TextStyle(
-              color: Colors.black,
-              fontSize: r.font(13),
-              fontWeight: FontWeight.bold,
-              fontFamily: 'Inter',
-            ),
-            textAlign: TextAlign.center,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-          if (subtitle.isNotEmpty)
-            Text(
-              subtitle,
-              style: TextStyle(
-                color: const Color(0xFF888888),
-                fontSize: r.font(11),
-                fontFamily: 'Inter',
               ),
-              textAlign: TextAlign.center,
-            ),
-          if (promo != null) ...[
-            Text(
-              _formatPrice(group['price'] as int),
-              style: TextStyle(
-                color: const Color(0xFF888888),
-                fontSize: r.font(11),
-                fontFamily: 'Inter',
-                decoration: TextDecoration.lineThrough,
+              Padding(
+                padding: const EdgeInsets.fromLTRB(14, 0, 14, 14),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(productName, style: TextStyle(fontWeight: FontWeight.w800, fontSize: r.font(14), fontFamily: 'Inter'), maxLines: 1, overflow: TextOverflow.ellipsis),
+                    if (subtitle.isNotEmpty) Text(subtitle, style: TextStyle(color: Colors.grey[500], fontSize: 11)),
+                    const SizedBox(height: 4),
+                    if (promo != null) ...[
+                      Text(_formatPrice(group['price'] as int), style: TextStyle(color: Colors.grey[400], fontSize: 10, decoration: TextDecoration.lineThrough)),
+                      Text(_formatPrice(displayPrice), style: TextStyle(color: const Color(0xFFC62828), fontWeight: FontWeight.w900, fontSize: r.font(15))),
+                    ] else
+                      Text(_formatPrice(group['price'] as int), style: TextStyle(color: const Color(0xFFC62828), fontWeight: FontWeight.w900, fontSize: r.font(15))),
+                    const SizedBox(height: 8),
+                    totalStock == 0 ? Container(width: double.infinity, padding: const EdgeInsets.symmetric(vertical: 8), decoration: BoxDecoration(color: Colors.grey[100], borderRadius: BorderRadius.circular(12)), child: const Center(child: Text('Stok Habis', style: TextStyle(color: Colors.grey, fontSize: 12, fontWeight: FontWeight.bold)))) : quantity == 0 ? SizedBox(width: double.infinity, child: ElevatedButton(onPressed: () => setState(() => _addGroupToCart(group)), style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFC62828), foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)), elevation: 0, padding: const EdgeInsets.symmetric(vertical: 8)), child: const Text('Tambah', style: TextStyle(fontWeight: FontWeight.bold)))) : Container(
+                      decoration: BoxDecoration(color: const Color(0xFFC62828), borderRadius: BorderRadius.circular(12)),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          IconButton(icon: const Icon(Icons.remove, color: Colors.white, size: 18), onPressed: () => setState(() => _removeGroupFromCart(groupKey))),
+                          Text('$quantity', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                          IconButton(icon: const Icon(Icons.add, color: Colors.white, size: 18), onPressed: () => setState(() => quantity < totalStock ? _addGroupToCart(group) : null)),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
-            Text(
-              _formatPrice(displayPrice),
-              style: TextStyle(
-                color: const Color(0xFFB71C1C),
-                fontSize: r.font(12),
-                fontWeight: FontWeight.bold,
-                fontFamily: 'Inter',
-              ),
-            ),
-          ] else
-            Text(
-              _formatPrice(group['price'] as int),
-              style: TextStyle(
-                color: const Color(0xFF1D1B1B),
-                fontSize: r.font(12),
-                fontFamily: 'Inter',
-              ),
-            ),
-          Text(
-            totalStock == 0 ? 'Stok Habis' : 'Stok: $totalStock',
-            style: TextStyle(
-              color: totalStock == 0 ? Colors.grey : const Color(0xFF1D1B1B),
-              fontSize: r.font(12),
-              fontFamily: 'Inter',
-              fontWeight:
-                  totalStock == 0 ? FontWeight.bold : FontWeight.normal,
-            ),
+            ],
           ),
-          SizedBox(height: r.space(6)),
-          Padding(
-            padding: EdgeInsets.symmetric(horizontal: r.space(16)),
-            child: totalStock == 0
-                ? SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: null,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.grey.shade300,
-                        foregroundColor: Colors.grey.shade500,
-                        disabledBackgroundColor: Colors.grey.shade300,
-                        disabledForegroundColor: Colors.grey.shade500,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        padding: EdgeInsets.symmetric(vertical: r.space(8)),
-                        elevation: 0,
-                      ),
-                      child: Text(
-                        'Habis',
-                        style: TextStyle(
-                          fontSize: r.font(12),
-                          fontFamily: 'Inter',
-                        ),
-                      ),
-                    ),
-                  )
-                : quantity == 0
-                ? SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: () {
-                        setState(() {
-                          _addGroupToCart(group);
-                        });
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFFE53935),
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        padding: EdgeInsets.symmetric(vertical: r.space(8)),
-                        elevation: 0,
-                      ),
-                      child: Text(
-                        'Tambah',
-                        style: TextStyle(
-                          fontSize: r.font(12),
-                          fontFamily: 'Inter',
-                        ),
-                      ),
-                    ),
-                  )
-                : Container(
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFE53935),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    padding: EdgeInsets.symmetric(vertical: r.space(2)),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        IconButton(
-                          constraints: const BoxConstraints(),
-                          padding: EdgeInsets.zero,
-                          icon: const Icon(
-                            Icons.remove,
-                            color: Colors.white,
-                            size: 20,
-                          ),
-                          onPressed: () {
-                            setState(() {
-                              _removeGroupFromCart(groupKey);
-                            });
-                          },
-                        ),
-                        Text(
-                          quantity.toString(),
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: r.font(14),
-                            fontWeight: FontWeight.bold,
-                            fontFamily: 'Inter',
-                          ),
-                        ),
-                        IconButton(
-                          constraints: const BoxConstraints(),
-                          padding: EdgeInsets.zero,
-                          icon: const Icon(
-                            Icons.add,
-                            color: Colors.white,
-                            size: 20,
-                          ),
-                          onPressed: () {
-                            setState(() {
-                              if (quantity < totalStock) {
-                                _addGroupToCart(group);
-                              }
-                            });
-                          },
-                        ),
-                      ],
-                    ),
-                  ),
-          ),
-          SizedBox(height: r.space(10)),
+          if (promo != null)
+            Positioned(top: 14, left: 14, child: Container(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4), decoration: BoxDecoration(color: const Color(0xFFE53935), borderRadius: BorderRadius.circular(8)), child: Text(promo['label'] as String, style: const TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.w900)))),
         ],
       ),
     );
   }
 }
 
-// ── Barcode Scanner Screen ─────────────────────────────────────────────────
 class _BarcodeScannerScreen extends StatefulWidget {
   const _BarcodeScannerScreen();
-
   @override
   State<_BarcodeScannerScreen> createState() => _BarcodeScannerScreenState();
 }
-
 class _BarcodeScannerScreenState extends State<_BarcodeScannerScreen> {
-  bool _scanned = false;
-  final MobileScannerController _ctrl = MobileScannerController(
-    detectionSpeed: DetectionSpeed.noDuplicates,
-  );
-
+  bool _scanned = false; final MobileScannerController _ctrl = MobileScannerController(detectionSpeed: DetectionSpeed.noDuplicates);
   @override
-  void dispose() {
-    _ctrl.dispose();
-    super.dispose();
-  }
-
+  void dispose() { _ctrl.dispose(); super.dispose(); }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
-      appBar: AppBar(
-        backgroundColor: const Color(0xFFC62828),
-        foregroundColor: Colors.white,
-        title: const Text(
-          'Scan Barcode Produk',
-          style: TextStyle(fontFamily: 'Inter', fontWeight: FontWeight.w700),
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.flash_on),
-            tooltip: 'Flash',
-            onPressed: () => _ctrl.toggleTorch(),
-          ),
-          IconButton(
-            icon: const Icon(Icons.cameraswitch),
-            tooltip: 'Ganti Kamera',
-            onPressed: () => _ctrl.switchCamera(),
-          ),
-        ],
-      ),
+      appBar: AppBar(backgroundColor: const Color(0xFFC62828), foregroundColor: Colors.white, title: const Text('Scan Barcode', style: TextStyle(fontFamily: 'Inter', fontWeight: FontWeight.w700))),
       body: Stack(
         children: [
-          MobileScanner(
-            controller: _ctrl,
-            onDetect: (capture) {
-              if (_scanned) return;
-              final barcode = capture.barcodes.firstOrNull;
-              final raw = barcode?.rawValue;
-              if (raw == null || raw.isEmpty) return;
-              _scanned = true;
-              Navigator.pop(context, raw);
-            },
-          ),
-          // Overlay viewfinder
-          Center(
-            child: Container(
-              width: 260,
-              height: 160,
-              decoration: BoxDecoration(
-                border: Border.all(color: const Color(0xFFE53935), width: 3),
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-          ),
-          Positioned(
-            bottom: 40,
-            left: 0,
-            right: 0,
-            child: const Text(
-              'Arahkan kamera ke barcode produk',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 14,
-                fontFamily: 'Inter',
-              ),
-            ),
-          ),
+          MobileScanner(controller: _ctrl, onDetect: (capture) { if (_scanned) return; final barcode = capture.barcodes.firstOrNull; final raw = barcode?.rawValue; if (raw == null || raw.isEmpty) return; _scanned = true; Navigator.pop(context, raw); }),
+          Center(child: Container(width: 260, height: 160, decoration: BoxDecoration(border: Border.all(color: const Color(0xFFE53935), width: 3), borderRadius: BorderRadius.circular(12)))),
+          const Positioned(bottom: 40, left: 0, right: 0, child: Text('Arahkan kamera ke barcode produk', textAlign: TextAlign.center, style: TextStyle(color: Colors.white, fontSize: 14, fontFamily: 'Inter'))),
         ],
       ),
     );
