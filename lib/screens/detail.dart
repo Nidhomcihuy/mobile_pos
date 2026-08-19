@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
+import 'dart:ui';
 import '../utils/responsive_helper.dart';
-import '../utils/app_config.dart';
 
 class Detail extends StatelessWidget {
   const Detail({super.key});
@@ -19,41 +20,196 @@ class Detail extends StatelessWidget {
     return 'Rp $result';
   }
 
+  bool _isNearExpiry(String dateStr) {
+    try {
+      final parts = dateStr.split('/');
+      if (parts.length == 3) {
+        final d = DateTime(int.parse(parts[2]), int.parse(parts[1]), int.parse(parts[0]));
+        return d.isBefore(DateTime.now().add(const Duration(days: 30)));
+      }
+      return false;
+    } catch (_) {
+      return false;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final r = Responsive.of(context);
     final Map<String, dynamic> product =
         (ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?) ??
-        {
-          'name': 'Produk Tidak Ditemukan',
-          'price': 0,
-          'stock': 0,
-          'image_url': '',
-          'category': '-',
-        };
+            {
+              'name': 'Produk Tidak Ditemukan',
+              'price': 0,
+              'stock': 0,
+              'image_url': '',
+              'category': '-',
+            };
 
     final int stock = (product['stock'] as num? ?? 0).toInt();
     final int minStock = (product['min_stock'] as num? ?? 0).toInt();
     final bool isLow = stock <= minStock && minStock > 0;
+    final imageUrl = (product['image_url'] ?? '').toString();
+
+    final expiresAt = (product['expires_at'] ?? product['kadaluarsa'] ?? '').toString();
+    final sku = (product['sku'] ?? '-').toString();
+    final barcode = (product['barcode'] ?? '-').toString();
+    final ukuran = (product['ukuran'] ?? '').toString();
+    final satuan = (product['satuan'] ?? '').toString();
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FB),
-      body: Column(
-        children: [
-          _buildHeader(r, context),
-          Expanded(
-            child: SingleChildScrollView(
-              padding: EdgeInsets.all(r.space(20)),
-              physics: const BouncingScrollPhysics(),
+      backgroundColor: Colors.white,
+      body: CustomScrollView(
+        physics: const BouncingScrollPhysics(),
+        slivers: [
+          SliverAppBar(
+            expandedHeight: r.space(350),
+            pinned: true,
+            backgroundColor: Colors.white,
+            elevation: 0,
+            leading: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(100),
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                  child: Container(
+                    color: Colors.white.withOpacity(0.8),
+                    child: IconButton(
+                      icon: const Icon(CupertinoIcons.back, color: Color(0xFF0F172A)),
+                      onPressed: () => Navigator.pop(context),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            flexibleSpace: FlexibleSpaceBar(
+              background: Container(
+                color: const Color(0xFFF8FAFC),
+                child: Hero(
+                  tag: 'prod-${product['id']}',
+                  child: imageUrl.isNotEmpty
+                      ? Image.network(
+                          imageUrl,
+                          fit: BoxFit.contain,
+                          errorBuilder: (_, __, ___) => const Center(
+                            child: Icon(CupertinoIcons.cube_box, size: 80, color: Color(0xFFCBD5E1)),
+                          ),
+                        )
+                      : const Center(
+                          child: Icon(CupertinoIcons.cube_box, size: 80, color: Color(0xFFCBD5E1)),
+                        ),
+                ),
+              ),
+            ),
+          ),
+          SliverToBoxAdapter(
+            child: Container(
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(24),
+                  topRight: Radius.circular(24),
+                ),
+              ),
+              transform: Matrix4.translationValues(0, -20, 0),
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildMainImageCard(r, product, isLow),
-                  const SizedBox(height: 20),
-                  _buildPriceAndStockGrid(r, product, stock, minStock, isLow),
-                  const SizedBox(height: 20),
-                  _buildStatusBanner(r, stock, minStock, isLow),
-                  const SizedBox(height: 20),
-                  _buildDetailedInfoList(r, product),
+                  Padding(
+                    padding: EdgeInsets.all(r.space(24)),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Expanded(
+                              child: Text(
+                                product['name'] ?? '-',
+                                style: const TextStyle(
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.w900,
+                                  fontFamily: 'Inter',
+                                  color: Color(0xFF0F172A),
+                                  height: 1.2,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        Text(
+                          _formatPrice((product['price'] as num? ?? 0).toInt()),
+                          style: const TextStyle(
+                            fontSize: 28,
+                            fontWeight: FontWeight.w900,
+                            color: Color(0xFFC62828),
+                            fontFamily: 'Inter',
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                        Row(
+                          children: [
+                            _buildPill(product['category'] ?? '-', CupertinoIcons.tag_fill, const Color(0xFFF1F5F9), const Color(0xFF475569)),
+                            const SizedBox(width: 12),
+                            _buildPill('$stock Tersedia', CupertinoIcons.cube_box_fill, isLow ? const Color(0xFFFEF2F2) : const Color(0xFFECFDF5), isLow ? const Color(0xFFEF4444) : const Color(0xFF10B981)),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                  Divider(color: const Color(0xFFF1F5F9), thickness: 8, height: 8),
+                  Padding(
+                    padding: EdgeInsets.all(r.space(24)),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Detail Produk',
+                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, fontFamily: 'Inter', color: Color(0xFF0F172A)),
+                        ),
+                        const SizedBox(height: 20),
+                        _buildDetailRow('SKU', sku),
+                        _buildDetailRow('Barcode', barcode),
+                        _buildDetailRow('Kemasan', [ukuran, satuan].where((s) => s.isNotEmpty).join(' ')),
+                        _buildDetailRow('Minimal Stok', '$minStock'),
+                        _buildDetailRow(
+                          'Kadaluarsa',
+                          expiresAt.isEmpty ? '-' : expiresAt,
+                          valueColor: _isNearExpiry(expiresAt) ? const Color(0xFFEF4444) : null,
+                          isLast: true,
+                        ),
+                      ],
+                    ),
+                  ),
+                  if (isLow)
+                    Container(
+                      margin: EdgeInsets.all(r.space(24)),
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFEF2F2),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: const Color(0xFFFECACA)),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(CupertinoIcons.exclamationmark_triangle_fill, color: Color(0xFFEF4444), size: 24),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text('Stok Menipis', style: TextStyle(fontWeight: FontWeight.w800, color: Color(0xFF991B1B), fontSize: 14)),
+                                const SizedBox(height: 2),
+                                Text('Sisa stok berada di bawah batas minimum ($minStock). Segera lakukan *restock*.', style: const TextStyle(color: Color(0xFFB91C1C), fontSize: 12)),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  SizedBox(height: r.space(40)),
                 ],
               ),
             ),
@@ -63,201 +219,49 @@ class Detail extends StatelessWidget {
     );
   }
 
-  Widget _buildHeader(Responsive r, BuildContext context) {
+  Widget _buildPill(String label, IconData icon, Color bgColor, Color textColor) {
     return Container(
-      width: double.infinity,
-      padding: EdgeInsets.fromLTRB(r.space(20), r.space(52), r.space(20), r.space(24)),
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          colors: [Color(0xFFD32F2F), Color(0xFFC62828)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.only(bottomLeft: Radius.circular(40), bottomRight: Radius.circular(40)),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: bgColor,
+        borderRadius: BorderRadius.circular(100),
       ),
       child: Row(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          IconButton(
-            onPressed: () => Navigator.pop(context),
-            icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 22),
+          Icon(icon, size: 14, color: textColor),
+          const SizedBox(width: 6),
+          Text(label, style: TextStyle(color: textColor, fontWeight: FontWeight.w700, fontSize: 13, fontFamily: 'Inter')),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDetailRow(String label, String value, {bool isLast = false, Color? valueColor}) {
+    return Padding(
+      padding: EdgeInsets.only(bottom: isLast ? 0 : 16),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 120,
+            child: Text(
+              label,
+              style: const TextStyle(color: Color(0xFF64748B), fontSize: 14, fontWeight: FontWeight.w500),
+            ),
           ),
-          const Expanded(
-            child: Center(
-              child: Text(
-                'Detail Produk',
-                style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w900, fontFamily: 'Inter'),
+          Expanded(
+            child: Text(
+              value,
+              style: TextStyle(
+                color: valueColor ?? const Color(0xFF1E293B),
+                fontSize: 14,
+                fontWeight: FontWeight.w700,
               ),
             ),
           ),
-          const SizedBox(width: 48),
         ],
       ),
     );
-  }
-
-  Widget _buildMainImageCard(Responsive r, Map<String, dynamic> product, bool isLow) {
-    final imageUrl = (product['image_url'] ?? '').toString();
-    return Container(
-      width: double.infinity,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(32),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 15, offset: const Offset(0, 5))],
-      ),
-      child: Column(
-        children: [
-          Container(
-            height: r.space(220),
-            padding: const EdgeInsets.all(32),
-            child: Hero(
-              tag: 'prod-${product['id']}',
-              child: imageUrl.isNotEmpty
-                  ? Image.network(imageUrl, fit: BoxFit.contain, errorBuilder: (_, __, ___) => const Icon(Icons.inventory_2_rounded, size: 80, color: Color(0xFFC62828)))
-                  : const Icon(Icons.inventory_2_rounded, size: 80, color: Color(0xFFC62828)),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
-            child: Column(
-              children: [
-                Text(
-                  product['name'] ?? '-',
-                  style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w900, fontFamily: 'Inter'),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 8),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-                  decoration: BoxDecoration(color: const Color(0xFFC62828).withOpacity(0.08), borderRadius: BorderRadius.circular(20)),
-                  child: Text(
-                    product['category'] ?? '-',
-                    style: const TextStyle(color: Color(0xFFC62828), fontWeight: FontWeight.w800, fontSize: 13),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPriceAndStockGrid(Responsive r, Map<String, dynamic> product, int stock, int minStock, bool isLow) {
-    return Row(
-      children: [
-        _infoBox(r, 'Harga Jual', _formatPrice((product['price'] as num? ?? 0).toInt()), Icons.payments_rounded, const Color(0xFFC62828)),
-        const SizedBox(width: 12),
-        _infoBox(r, 'Stok Saat Ini', '$stock Pcs', Icons.inventory_2_rounded, isLow ? Colors.orange : Colors.green),
-        const SizedBox(width: 12),
-        _infoBox(r, 'Min. Stok', '$minStock Pcs', Icons.low_priority_rounded, Colors.blueGrey),
-      ],
-    );
-  }
-
-  Widget _infoBox(Responsive r, String label, String value, IconData icon, Color color) {
-    return Expanded(
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(24),
-          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 10, offset: const Offset(0, 4))],
-        ),
-        child: Column(
-          children: [
-            Icon(icon, color: color, size: 20),
-            const SizedBox(height: 8),
-            Text(label, style: TextStyle(color: Colors.grey[500], fontSize: 10, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 4),
-            FittedBox(child: Text(value, style: TextStyle(fontWeight: FontWeight.w900, fontSize: 14, color: color))),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildStatusBanner(Responsive r, int stock, int minStock, bool isLow) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: isLow ? Colors.orange[50] : Colors.green[50],
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: isLow ? Colors.orange.withOpacity(0.2) : Colors.green.withOpacity(0.2)),
-      ),
-      child: Row(
-        children: [
-          Icon(isLow ? Icons.warning_amber_rounded : Icons.check_circle_outline_rounded, color: isLow ? Colors.orange[800] : Colors.green[800], size: 28),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(isLow ? 'Stok Perlu Ditambah' : 'Kondisi Stok Aman', style: TextStyle(fontWeight: FontWeight.w900, color: isLow ? Colors.orange[900] : Colors.green[900])),
-                Text(
-                  isLow ? 'Stok di bawah batas minimum $minStock pcs.' : 'Jumlah stok mencukupi untuk transaksi.',
-                  style: TextStyle(fontSize: 12, color: isLow ? Colors.orange[700] : Colors.green[700]),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildDetailedInfoList(Responsive r, Map<String, dynamic> product) {
-    final expiresAt = (product['expires_at'] ?? product['kadaluarsa'] ?? '').toString();
-    final sku = (product['sku'] ?? '-').toString();
-    final barcode = (product['barcode'] ?? '-').toString();
-    final ukuran = (product['ukuran'] ?? '').toString();
-    final satuan = (product['satuan'] ?? '').toString();
-
-    return Container(
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(32), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 15)]),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Row(
-            children: [
-              Icon(Icons.info_outline_rounded, color: Color(0xFFC62828), size: 18),
-              SizedBox(width: 8),
-              Text('Informasi Inventaris', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 15)),
-            ],
-          ),
-          const SizedBox(height: 24),
-          _infoRow('SKU Produk', sku),
-          _infoRow('Barcode', barcode),
-          _infoRow('Kemasan', [ukuran, satuan].where((s) => s.isNotEmpty).join(' ')),
-          _infoRow('Tgl Kadaluarsa', expiresAt, isLast: true, color: _isNearExpiry(expiresAt) ? Colors.red : null),
-        ],
-      ),
-    );
-  }
-
-  Widget _infoRow(String label, String value, {bool isLast = false, Color? color}) {
-    return Column(
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(label, style: TextStyle(color: Colors.grey[500], fontWeight: FontWeight.w600, fontSize: 13)),
-            Text(value.isEmpty ? '-' : value, style: TextStyle(fontWeight: FontWeight.w800, fontSize: 13, color: color ?? Colors.black87)),
-          ],
-        ),
-        if (!isLast) Padding(padding: const EdgeInsets.symmetric(vertical: 12), child: Divider(color: Colors.grey[100])),
-      ],
-    );
-  }
-
-  bool _isNearExpiry(String dateStr) {
-    try {
-      final parts = dateStr.split('/');
-      if (parts.length == 3) {
-        final d = DateTime(int.parse(parts[2]), int.parse(parts[1]), int.parse(parts[0]));
-        return d.isBefore(DateTime.now().add(const Duration(days: 30)));
-      }
-      return false;
-    } catch (_) { return false; }
   }
 }

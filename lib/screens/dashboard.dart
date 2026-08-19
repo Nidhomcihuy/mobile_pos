@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../utils/responsive_helper.dart';
 import '../utils/api_service.dart';
@@ -41,41 +42,10 @@ class _DashboardState extends State<Dashboard> {
       });
     } catch (e) {
       setState(() {
-        _products = _localProducts;
-        _categories = ['Makanan', 'Minuman', 'Snack', 'Obat', 'Sembako'];
         _isLoading = false;
       });
     }
   }
-
-  final List<Map<String, dynamic>> _localProducts = [
-    {
-      'id': 1,
-      'name': 'Indomie Soto',
-      'price': 3500,
-      'stock': 50,
-      'image': 'assets/images/indsoto.png',
-      'category': 'Makanan',
-      'sku': 'IDM-001',
-      'rak': 'A-12',
-      'area': 'Makanan Instan',
-      'masuk': '20/01/2024',
-      'kadaluarsa': '20/01/2025',
-    },
-    {
-      'id': 2,
-      'name': 'Indomie Goreng',
-      'price': 3500,
-      'stock': 45,
-      'image': 'assets/images/indogoreng.png',
-      'category': 'Makanan',
-      'sku': 'IDM-002',
-      'rak': 'A-12',
-      'area': 'Makanan Instan',
-      'masuk': '21/01/2024',
-      'kadaluarsa': '21/01/2025',
-    },
-  ];
 
   String _formatPrice(int price) {
     String priceStr = price.toString();
@@ -154,123 +124,37 @@ class _DashboardState extends State<Dashboard> {
     return groups.values.toList();
   }
 
+  void _logout() async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('auth_token') ?? '';
+    try { await ApiService.logout(token); } catch (_) {}
+    await prefs.remove('auth_token');
+    if (mounted) Navigator.pushReplacementNamed(context, '/login');
+  }
+
   @override
   Widget build(BuildContext context) {
     final r = Responsive.of(context);
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FB),
-      body: Column(
-        children: [
-          _buildHeader(r),
-          _buildNavBar(context, r),
-          Expanded(
-            child: Padding(
-              padding: EdgeInsets.symmetric(horizontal: r.space(20)),
-              child: Column(
-                children: [
-                  SizedBox(height: r.space(20)),
-                  _buildSearchBar(r),
-                  SizedBox(height: r.space(16)),
-                  _buildCategoryFilters(r),
-                  SizedBox(height: r.space(20)),
-                  Expanded(child: _buildProductGrid(r)),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildHeader(Responsive r) {
-    return Container(
-      width: double.infinity,
-      padding: EdgeInsets.fromLTRB(r.space(20), r.space(52), r.space(20), r.space(24)),
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          colors: [Color(0xFFD32F2F), Color(0xFFB71C1C)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.only(
-          bottomLeft: Radius.circular(40),
-          bottomRight: Radius.circular(40),
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black26,
-            blurRadius: 15,
-            offset: Offset(0, 5),
-          ),
-        ],
-      ),
-      child: SafeArea(
-        top: false,
+      backgroundColor: const Color(0xFFF8FAFC),
+      body: SafeArea(
         bottom: false,
-        child: Row(
+        child: Column(
           children: [
-            Container(
-              padding: const EdgeInsets.all(4),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(12),
-                child: Image.asset(
-                  AppConfig.storeLogo,
-                  width: r.icon(50),
-                  height: r.icon(50),
-                  fit: BoxFit.cover,
-                ),
-              ),
-            ),
-            SizedBox(width: r.space(16)),
+            _buildHeader(r),
             Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    AppConfig.storeName,
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: r.font(22),
-                      fontWeight: FontWeight.w900,
-                      fontFamily: 'Inter',
-                    ),
-                  ),
-                  Row(
-                    children: [
-                      const Icon(Icons.person, color: Colors.white70, size: 14),
-                      const SizedBox(width: 4),
-                      Text(
-                        AppConfig.cashierName,
-                        style: TextStyle(
-                          color: Colors.white70,
-                          fontSize: r.font(14),
-                          fontFamily: 'Inter',
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.15),
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Text(
-                AppConfig.todayDate,
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: r.font(12),
-                  fontWeight: FontWeight.bold,
-                  fontFamily: 'Inter',
+              child: Padding(
+                padding: EdgeInsets.symmetric(horizontal: r.space(20)),
+                child: Column(
+                  children: [
+                    SizedBox(height: r.space(16)),
+                    _buildSearchBar(r),
+                    SizedBox(height: r.space(20)),
+                    _buildCategoryFilters(r),
+                    SizedBox(height: r.space(20)),
+                    Expanded(child: _buildProductGrid(r)),
+                  ],
                 ),
               ),
             ),
@@ -280,77 +164,62 @@ class _DashboardState extends State<Dashboard> {
     );
   }
 
-  Widget _buildNavBar(BuildContext context, Responsive r) {
-    final navItems = ['Dashboard', 'Kasir', 'Riwayat'];
-    const selectedIndex = 0;
-
+  Widget _buildHeader(Responsive r) {
     return Container(
-      margin: EdgeInsets.fromLTRB(r.space(20), r.space(16), r.space(20), 0),
-      padding: const EdgeInsets.all(6),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
+      padding: EdgeInsets.symmetric(horizontal: r.space(20), vertical: r.space(16)),
       child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          ...List.generate(navItems.length, (index) {
-            final isSelected = index == selectedIndex;
-            return Expanded(
-              child: InkWell(
-                onTap: () {
-                  if (!isSelected) {
-                    Navigator.pushReplacementNamed(
-                      context,
-                      '/${navItems[index].toLowerCase()}',
-                    );
-                  }
-                },
-                borderRadius: BorderRadius.circular(15),
-                child: Container(
-                  padding: EdgeInsets.symmetric(vertical: r.space(10)),
-                  decoration: BoxDecoration(
-                    color: isSelected
-                        ? const Color(0xFFC62828)
-                        : Colors.transparent,
-                    borderRadius: BorderRadius.circular(15),
-                  ),
-                  alignment: Alignment.center,
-                  child: Text(
-                    navItems[index],
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(2),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(color: const Color(0xFFC62828), width: 2),
+                ),
+                child: CircleAvatar(
+                  radius: r.icon(22),
+                  backgroundColor: const Color(0xFFC62828).withOpacity(0.1),
+                  child: const Icon(CupertinoIcons.person_fill, color: Color(0xFFC62828)),
+                ),
+              ),
+              SizedBox(width: r.space(12)),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Halo, ${AppConfig.cashierName}',
                     style: TextStyle(
-                      color: isSelected ? Colors.white : Colors.grey[600],
-                      fontSize: r.font(15),
-                      fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
+                      color: const Color(0xFF1E293B),
+                      fontSize: r.font(16),
+                      fontWeight: FontWeight.w800,
                       fontFamily: 'Inter',
                     ),
                   ),
-                ),
+                  const SizedBox(height: 2),
+                  Text(
+                    AppConfig.storeName,
+                    style: TextStyle(
+                      color: const Color(0xFF64748B),
+                      fontSize: r.font(12),
+                      fontWeight: FontWeight.w500,
+                      fontFamily: 'Inter',
+                    ),
+                  ),
+                ],
               ),
-            );
-          }),
-          Container(
-            width: 1,
-            height: 24,
-            color: Colors.grey[200],
-            margin: const EdgeInsets.symmetric(horizontal: 4),
+            ],
           ),
           IconButton(
-            icon: Icon(Icons.logout_rounded, color: Colors.red[700]),
-            onPressed: () async {
-              final prefs = await SharedPreferences.getInstance();
-              final token = prefs.getString('auth_token') ?? '';
-              try { await ApiService.logout(token); } catch (_) {}
-              await prefs.remove('auth_token');
-              if (context.mounted) Navigator.pushReplacementNamed(context, '/login');
-            },
-          ),
+            onPressed: _logout,
+            icon: const Icon(CupertinoIcons.power, color: Color(0xFFEF4444)),
+            tooltip: 'Logout',
+            style: IconButton.styleFrom(
+              backgroundColor: const Color(0xFFFEF2F2),
+              padding: const EdgeInsets.all(12),
+            ),
+          )
         ],
       ),
     );
@@ -360,10 +229,11 @@ class _DashboardState extends State<Dashboard> {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.03),
+            color: const Color(0xFF0F172A).withOpacity(0.02),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -371,12 +241,13 @@ class _DashboardState extends State<Dashboard> {
       ),
       child: TextField(
         onChanged: (value) => setState(() => _searchQuery = value),
+        style: TextStyle(fontSize: r.font(14), color: const Color(0xFF1E293B)),
         decoration: InputDecoration(
           hintText: 'Cari produk...',
-          hintStyle: TextStyle(color: Colors.grey[400], fontSize: r.font(15)),
-          prefixIcon: Icon(Icons.search_rounded, color: const Color(0xFFC62828), size: r.icon(22)),
+          hintStyle: TextStyle(color: const Color(0xFF94A3B8), fontSize: r.font(14)),
+          prefixIcon: Icon(CupertinoIcons.search, color: const Color(0xFFC62828), size: r.icon(20)),
           border: InputBorder.none,
-          contentPadding: EdgeInsets.symmetric(horizontal: r.space(16), vertical: r.space(14)),
+          contentPadding: EdgeInsets.symmetric(horizontal: r.space(16), vertical: r.space(16)),
         ),
       ),
     );
@@ -385,31 +256,34 @@ class _DashboardState extends State<Dashboard> {
   Widget _buildCategoryFilters(Responsive r) {
     final allItems = ['Semua', ..._categories];
     return SizedBox(
-      height: r.space(40),
+      height: r.space(38),
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         itemCount: allItems.length,
-        separatorBuilder: (_, __) => const SizedBox(width: 10),
+        separatorBuilder: (_, __) => const SizedBox(width: 8),
         itemBuilder: (context, index) {
           final name = allItems[index];
           final isSelected = _selectedCategory == name;
           return InkWell(
             onTap: () => setState(() => _selectedCategory = name),
-            borderRadius: BorderRadius.circular(12),
-            child: Container(
+            borderRadius: BorderRadius.circular(100),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
               padding: EdgeInsets.symmetric(horizontal: r.space(20)),
               decoration: BoxDecoration(
                 color: isSelected ? const Color(0xFFC62828) : Colors.white,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: isSelected ? Colors.transparent : Colors.grey[200]!),
+                borderRadius: BorderRadius.circular(100),
+                border: Border.all(
+                  color: isSelected ? const Color(0xFFC62828) : const Color(0xFFE2E8F0),
+                ),
               ),
               alignment: Alignment.center,
               child: Text(
                 name,
                 style: TextStyle(
-                  color: isSelected ? Colors.white : Colors.grey[700],
+                  color: isSelected ? Colors.white : const Color(0xFF475569),
                   fontSize: r.font(13),
-                  fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
+                  fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
                   fontFamily: 'Inter',
                 ),
               ),
@@ -430,15 +304,15 @@ class _DashboardState extends State<Dashboard> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.inventory_2_outlined, size: 64, color: Colors.grey[300]),
+            Icon(CupertinoIcons.cube_box, size: 64, color: const Color(0xFFCBD5E1)),
             const SizedBox(height: 16),
-            Text('Produk tidak ditemukan', style: TextStyle(color: Colors.grey[500], fontSize: 16)),
+            Text('Produk tidak ditemukan', style: TextStyle(color: const Color(0xFF64748B), fontSize: 15, fontWeight: FontWeight.w500)),
           ],
         ),
       );
     }
     return GridView.builder(
-      padding: EdgeInsets.only(bottom: r.space(20)),
+      padding: EdgeInsets.only(bottom: r.space(30)),
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: r.gridColumns,
         mainAxisSpacing: r.space(16),
@@ -459,10 +333,11 @@ class _DashboardState extends State<Dashboard> {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: const Color(0xFFF1F5F9), width: 1.5),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: const Color(0xFF0F172A).withOpacity(0.03),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -476,10 +351,10 @@ class _DashboardState extends State<Dashboard> {
               Expanded(
                 child: Container(
                   width: double.infinity,
-                  margin: const EdgeInsets.all(8),
+                  margin: const EdgeInsets.all(6),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFF5F5F7),
-                    borderRadius: BorderRadius.circular(18),
+                    color: const Color(0xFFF8FAFC),
+                    borderRadius: BorderRadius.circular(16),
                   ),
                   child: Center(
                     child: Hero(
@@ -500,32 +375,51 @@ class _DashboardState extends State<Dashboard> {
                 ),
               ),
               Padding(
-                padding: const EdgeInsets.fromLTRB(14, 0, 14, 14),
+                padding: const EdgeInsets.fromLTRB(14, 4, 14, 14),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       product['name'],
-                      style: TextStyle(fontWeight: FontWeight.w800, fontSize: r.font(14), fontFamily: 'Inter'),
+                      style: TextStyle(
+                        color: const Color(0xFF0F172A),
+                        fontWeight: FontWeight.w700,
+                        fontSize: r.font(14),
+                        fontFamily: 'Inter',
+                      ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
                     const SizedBox(height: 4),
                     Text(
                       _formatPrice(product['price']),
-                      style: TextStyle(color: const Color(0xFFC62828), fontWeight: FontWeight.w900, fontSize: r.font(15)),
+                      style: TextStyle(
+                        color: const Color(0xFFC62828),
+                        fontWeight: FontWeight.w900,
+                        fontSize: r.font(15),
+                      ),
                     ),
                     const SizedBox(height: 8),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text('Stok: $stock', style: TextStyle(color: isOutOfStock ? Colors.red : isLowStock ? Colors.orange : Colors.grey[600], fontSize: 11, fontWeight: FontWeight.w700)),
+                        Text(
+                          'Stok: $stock',
+                          style: TextStyle(
+                            color: isOutOfStock ? const Color(0xFFEF4444) : isLowStock ? const Color(0xFFF59E0B) : const Color(0xFF64748B),
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
                         InkWell(
                           onTap: () => Navigator.pushNamed(context, '/detail', arguments: product),
                           child: Container(
                             padding: const EdgeInsets.all(6),
-                            decoration: const BoxDecoration(color: Color(0xFFC62828), shape: BoxShape.circle),
-                            child: const Icon(Icons.arrow_forward_rounded, color: Colors.white, size: 14),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFC62828).withOpacity(0.08),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: const Icon(CupertinoIcons.right_chevron, color: Color(0xFFC62828), size: 14),
                           ),
                         ),
                       ],
@@ -542,12 +436,12 @@ class _DashboardState extends State<Dashboard> {
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
-                  color: isOutOfStock ? Colors.black87 : Colors.orange,
+                  color: isOutOfStock ? const Color(0xFFEF4444) : const Color(0xFFF59E0B),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
                   isOutOfStock ? 'HABIS' : 'LIMIT',
-                  style: const TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.w900),
+                  style: const TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.w800),
                 ),
               ),
             ),
@@ -558,8 +452,8 @@ class _DashboardState extends State<Dashboard> {
 
   Widget _networkOrPlaceholder(String? url) {
     if (url != null && url.isNotEmpty) {
-      return Image.network(url, fit: BoxFit.contain, errorBuilder: (_, __, ___) => const Icon(Icons.image_not_supported, color: Colors.grey));
+      return Image.network(url, fit: BoxFit.contain, errorBuilder: (_, __, ___) => const Icon(CupertinoIcons.photo, color: Color(0xFFCBD5E1)));
     }
-    return const Icon(Icons.inventory_2_rounded, size: 40, color: Color(0xFFC62828));
+    return const Icon(CupertinoIcons.cube_box, size: 40, color: Color(0xFFCBD5E1));
   }
 }

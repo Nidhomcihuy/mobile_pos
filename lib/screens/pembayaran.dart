@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -378,7 +379,7 @@ class _PembayaranState extends State<Pembayaran> {
     }
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F5F7),
+      backgroundColor: const Color(0xFFF8FAFC),
       body: Column(
         children: [
           _buildHeader(r),
@@ -407,59 +408,53 @@ class _PembayaranState extends State<Pembayaran> {
 
   Widget _buildHeader(Responsive r) {
     return Container(
-      width: double.infinity,
-      padding: EdgeInsets.fromLTRB(r.space(20), r.space(52), r.space(20), r.space(24)),
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          colors: [Color(0xFFD32F2F), Color(0xFFC62828)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.only(bottomLeft: Radius.circular(40), bottomRight: Radius.circular(40)),
-        boxShadow: [BoxShadow(color: Colors.black26, blurRadius: 10, offset: Offset(0, 4))],
-      ),
-      child: Column(
+      padding: EdgeInsets.symmetric(horizontal: r.space(20), vertical: r.space(16)).copyWith(top: r.space(52)),
+      child: Row(
         children: [
-          Row(
-            children: [
-              IconButton(
-                onPressed: () => Navigator.pop(context),
-                icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 22),
-              ),
-              const Expanded(
-                child: Center(
-                  child: Text(
-                    'Konfirmasi Pesanan',
-                    style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w900, fontFamily: 'Inter'),
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: const Color(0xFFC62828).withOpacity(0.1),
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: const Icon(CupertinoIcons.creditcard_fill, color: Color(0xFFC62828), size: 24),
+          ),
+          SizedBox(width: r.space(12)),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Pembayaran',
+                  style: TextStyle(
+                    color: const Color(0xFF1E293B),
+                    fontSize: r.font(18),
+                    fontWeight: FontWeight.w800,
+                    fontFamily: 'Inter',
                   ),
                 ),
-              ),
-              const SizedBox(width: 48),
-            ],
-          ),
-          const SizedBox(height: 20),
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(color: Colors.white.withOpacity(0.15), borderRadius: BorderRadius.circular(20)),
-            child: Row(
-              children: [
-                const CircleAvatar(
-                  backgroundColor: Colors.white,
-                  child: Icon(Icons.store_rounded, color: Color(0xFFC62828)),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(AppConfig.storeName, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
-                      Text(AppConfig.storeAddress, style: TextStyle(color: Colors.white70, fontSize: 12)),
-                    ],
+                const SizedBox(height: 2),
+                Text(
+                  'Konfirmasi pesanan & bayar',
+                  style: TextStyle(
+                    color: const Color(0xFF64748B),
+                    fontSize: r.font(12),
+                    fontWeight: FontWeight.w500,
+                    fontFamily: 'Inter',
                   ),
                 ),
               ],
             ),
           ),
+          IconButton(
+            onPressed: () => Navigator.pop(context),
+            icon: const Icon(CupertinoIcons.xmark, color: Color(0xFF64748B)),
+            style: IconButton.styleFrom(
+              backgroundColor: Colors.white,
+              padding: const EdgeInsets.all(12),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12), side: const BorderSide(color: Color(0xFFE2E8F0))),
+            ),
+          )
         ],
       ),
     );
@@ -469,15 +464,25 @@ class _PembayaranState extends State<Pembayaran> {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(28),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 15, offset: const Offset(0, 5))],
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: const Color(0xFFF1F5F9), width: 1.5),
+        boxShadow: [BoxShadow(color: const Color(0xFF0F172A).withOpacity(0.02), blurRadius: 10, offset: const Offset(0, 4))],
       ),
       padding: const EdgeInsets.all(24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Daftar Belanja', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 17, fontFamily: 'Inter')),
-          const Divider(height: 32),
+          Row(
+            children: [
+              const Icon(CupertinoIcons.bag_fill, color: Color(0xFFC62828), size: 20),
+              const SizedBox(width: 8),
+              const Text('Rincian Belanja', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16, fontFamily: 'Inter', color: Color(0xFF0F172A))),
+            ],
+          ),
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: 16),
+            child: Divider(color: Color(0xFFF1F5F9), thickness: 1.5),
+          ),
           ListView.separated(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
@@ -494,20 +499,20 @@ class _PembayaranState extends State<Pembayaran> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(item['name'] as String, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15), maxLines: 1, overflow: TextOverflow.ellipsis),
+                        Text(item['name'] as String, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14, color: Color(0xFF1E293B)), maxLines: 1, overflow: TextOverflow.ellipsis),
                         const SizedBox(height: 2),
-                        Text(_formatPrice(price), style: TextStyle(color: Colors.grey[500], fontSize: 12)),
+                        Text(_formatPrice(price), style: const TextStyle(color: Color(0xFF64748B), fontSize: 12)),
                       ],
                     ),
                   ),
                   Row(
                     children: [
-                      _qtyButton(Icons.remove, () => _changeQty(index, -1), isDelete: qty == 1),
+                      _qtyButton(CupertinoIcons.minus, () => _changeQty(index, -1), isDelete: qty == 1),
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 12),
-                        child: Text('$qty', style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 15)),
+                        child: Text('$qty', style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 14, color: Color(0xFF0F172A))),
                       ),
-                      _qtyButton(Icons.add, () => _changeQty(index, 1)),
+                      _qtyButton(CupertinoIcons.plus, () => _changeQty(index, 1)),
                     ],
                   ),
                   const SizedBox(width: 16),
@@ -516,7 +521,7 @@ class _PembayaranState extends State<Pembayaran> {
                     children: [
                       Text(_formatPrice(price * qty - itemDisc), style: const TextStyle(fontWeight: FontWeight.w900, color: Color(0xFFC62828), fontSize: 14)),
                       if (itemDisc > 0)
-                        Text('Disc. ${_formatPrice(itemDisc)}', style: const TextStyle(color: Colors.green, fontSize: 10, fontWeight: FontWeight.w700)),
+                        Text('Disc. ${_formatPrice(itemDisc)}', style: const TextStyle(color: Color(0xFF10B981), fontSize: 10, fontWeight: FontWeight.w700)),
                     ],
                   ),
                 ],
@@ -532,12 +537,12 @@ class _PembayaranState extends State<Pembayaran> {
     return InkWell(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.all(4),
+        padding: const EdgeInsets.all(6),
         decoration: BoxDecoration(
-          color: isDelete ? Colors.red[50] : const Color(0xFFF5F5F7),
+          color: isDelete ? const Color(0xFFFEF2F2) : const Color(0xFFF1F5F9),
           borderRadius: BorderRadius.circular(8),
         ),
-        child: Icon(isDelete ? Icons.delete_outline_rounded : icon, size: 18, color: isDelete ? Colors.red : Colors.black87),
+        child: Icon(isDelete ? CupertinoIcons.trash : icon, size: 16, color: isDelete ? const Color(0xFFEF4444) : const Color(0xFF64748B)),
       ),
     );
   }
@@ -645,20 +650,24 @@ class _PembayaranState extends State<Pembayaran> {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: const Color(0xFF1A1C1E),
-        borderRadius: BorderRadius.circular(28),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.2), blurRadius: 10, offset: const Offset(0, 5))],
+        gradient: const LinearGradient(
+          colors: [Color(0xFFC62828), Color(0xFFB71C1C)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [BoxShadow(color: const Color(0xFFC62828).withOpacity(0.3), blurRadius: 15, offset: const Offset(0, 8))],
       ),
       child: Column(
         children: [
-          _rowSummary('Subtotal', _formatPrice(subtotal), Colors.white60),
+          _rowSummary('Subtotal', _formatPrice(subtotal), Colors.white70),
           if (discount > 0) ...[
             const SizedBox(height: 8),
-            _rowSummary('Diskon Promo', '- ${_formatPrice(discount)}', Colors.greenAccent),
+            _rowSummary('Diskon Promo', '- ${_formatPrice(discount)}', const Color(0xFF6EE7B7)),
           ],
           const Padding(
             padding: EdgeInsets.symmetric(vertical: 16),
-            child: Divider(color: Colors.white12, thickness: 1),
+            child: Divider(color: Colors.white24, thickness: 1),
           ),
           _rowSummary('TOTAL TAGIHAN', _formatPrice(grandTotal), Colors.white, isGrand: true),
         ],
@@ -682,7 +691,7 @@ class _PembayaranState extends State<Pembayaran> {
       padding: EdgeInsets.fromLTRB(r.space(20), r.space(16), r.space(20), r.space(36)),
       decoration: BoxDecoration(
         color: Colors.white,
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, -5))],
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 20, offset: const Offset(0, -5))],
       ),
       child: Row(
         children: [
