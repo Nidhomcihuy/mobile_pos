@@ -21,11 +21,25 @@ class PrinterService {
   }
 
   static Future<List<BluetoothInfo>> getPairedDevices() async {
-    return PrintBluetoothThermal.pairedBluetooths;
+    try {
+      return await PrintBluetoothThermal.pairedBluetooths.timeout(
+        const Duration(seconds: 5),
+        onTimeout: () => [],
+      );
+    } catch (_) {
+      return [];
+    }
   }
 
   static Future<bool> isBluetoothEnabled() async {
-    return PrintBluetoothThermal.bluetoothEnabled;
+    try {
+      return await PrintBluetoothThermal.bluetoothEnabled.timeout(
+        const Duration(seconds: 5),
+        onTimeout: () => false,
+      );
+    } catch (_) {
+      return false;
+    }
   }
 
   static Future<bool> connect(String mac) async {
@@ -48,7 +62,14 @@ class PrinterService {
   }
 
   static Future<bool> get isConnected async {
-    return PrintBluetoothThermal.connectionStatus;
+    try {
+      return await PrintBluetoothThermal.connectionStatus.timeout(
+        const Duration(seconds: 5),
+        onTimeout: () => false,
+      );
+    } catch (_) {
+      return false;
+    }
   }
 
   static Future<void> disconnect() async {
@@ -62,7 +83,7 @@ class PrinterService {
   /// Cek semua kondisi dan kembalikan pesan status.
   /// Tidak mengecek koneksi aktif — auto-connect ditangani saat cetak.
   static Future<String> diagnose() async {
-    final btOn = await PrintBluetoothThermal.bluetoothEnabled;
+    final btOn = await isBluetoothEnabled();
     if (!btOn) {
       return 'Bluetooth tidak aktif. Aktifkan Bluetooth terlebih dahulu.';
     }
@@ -106,7 +127,7 @@ class PrinterService {
     String? storeAddress,
   }) async {
     try {
-      final btOn = await PrintBluetoothThermal.bluetoothEnabled;
+      final btOn = await isBluetoothEnabled();
       if (!btOn) {
         return (ok: false, error: 'Bluetooth tidak aktif');
       }
@@ -116,7 +137,7 @@ class PrinterService {
         return (ok: false, error: 'Belum ada printer dipilih');
       }
 
-      final alreadyConnected = await PrintBluetoothThermal.connectionStatus;
+      final alreadyConnected = await isConnected;
       if (!alreadyConnected) {
         final ok = await connect(mac); // pakai method dengan timeout 15s
         if (!ok) {
@@ -158,29 +179,23 @@ class PrinterService {
         return (ok: false, error: 'Data cetak kosong. Coba lagi.');
       }
 
-      // Coba kirim sekaligus dulu (plugin butuh List<int>, bukan Uint8List)
-      bool written = await PrintBluetoothThermal.writeBytes(
-        bytes,
-      ).timeout(const Duration(seconds: 20), onTimeout: () => false);
-
-      // Jika gagal, coba kirim per-chunk 512 bytes
-      if (!written) {
-        written = true;
-        const chunkSize = 512;
-        for (int i = 0; i < bytes.length; i += chunkSize) {
-          final end = (i + chunkSize < bytes.length)
-              ? i + chunkSize
-              : bytes.length;
-          final chunk = bytes.sublist(i, end);
-          final ok = await PrintBluetoothThermal.writeBytes(
-            chunk,
-          ).timeout(const Duration(seconds: 10), onTimeout: () => false);
-          if (!ok) {
-            written = false;
-            break;
-          }
-          await Future<void>.delayed(const Duration(milliseconds: 50));
+      // Selalu kirim per-chunk untuk menghindari blocking pada OS/Printer buffer.
+      // MP-80M PRO dan banyak printer thermal lainnya memiliki buffer yang kecil.
+      bool written = true;
+      const chunkSize = 128; // Ukuran chunk kecil (128 bytes) lebih aman untuk MP-80M
+      for (int i = 0; i < bytes.length; i += chunkSize) {
+        final end = (i + chunkSize < bytes.length) ? i + chunkSize : bytes.length;
+        final chunk = bytes.sublist(i, end);
+        
+        final ok = await PrintBluetoothThermal.writeBytes(chunk)
+            .timeout(const Duration(seconds: 5), onTimeout: () => false);
+            
+        if (!ok) {
+          written = false;
+          break;
         }
+        // Beri waktu printer untuk memproses buffer-nya
+        await Future<void>.delayed(const Duration(milliseconds: 30));
       }
 
       if (!written) {

@@ -300,29 +300,40 @@ class _RiwayatState extends State<Riwayat> {
             child: const Icon(CupertinoIcons.clock_fill, color: Color(0xFFC62828), size: 24),
           ),
           SizedBox(width: r.space(12)),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Riwayat Transaksi',
-                style: TextStyle(
-                  color: const Color(0xFF1E293B),
-                  fontSize: r.font(18),
-                  fontWeight: FontWeight.w800,
-                  fontFamily: 'Inter',
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Riwayat Transaksi',
+                  style: TextStyle(
+                    color: const Color(0xFF1E293B),
+                    fontSize: r.font(18),
+                    fontWeight: FontWeight.w800,
+                    fontFamily: 'Inter',
+                  ),
                 ),
-              ),
-              const SizedBox(height: 2),
-              Text(
-                '50 transaksi terakhir',
-                style: TextStyle(
-                  color: const Color(0xFF64748B),
-                  fontSize: r.font(12),
-                  fontWeight: FontWeight.w500,
-                  fontFamily: 'Inter',
+                const SizedBox(height: 2),
+                Text(
+                  '50 transaksi terakhir',
+                  style: TextStyle(
+                    color: const Color(0xFF64748B),
+                    fontSize: r.font(12),
+                    fontWeight: FontWeight.w500,
+                    fontFamily: 'Inter',
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
+          ),
+          IconButton(
+            onPressed: () => Navigator.pushNamed(context, '/printer'),
+            icon: const Icon(CupertinoIcons.printer, color: Color(0xFFC62828)),
+            tooltip: 'Pengaturan Printer',
+            style: IconButton.styleFrom(
+              backgroundColor: const Color(0xFFC62828).withOpacity(0.08),
+              padding: const EdgeInsets.all(12),
+            ),
           ),
         ],
       ),

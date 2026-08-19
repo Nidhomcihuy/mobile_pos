@@ -289,78 +289,80 @@ class _PembayaranState extends State<Pembayaran> {
         builder: (dialogContext, setDialogState) => AlertDialog(
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
           contentPadding: const EdgeInsets.all(24),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const CircleAvatar(
-                radius: 32,
-                backgroundColor: Colors.green,
-                child: Icon(Icons.check, color: Colors.white, size: 40),
-              ),
-              const SizedBox(height: 16),
-              const Text('Pembayaran Berhasil!', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 20, fontFamily: 'Inter')),
-              Text(invoiceNumber, style: const TextStyle(color: Colors.grey, fontSize: 13, fontFamily: 'Inter')),
-              const Divider(height: 32),
-              ...items.map((item) => Padding(
-                padding: const EdgeInsets.symmetric(vertical: 3),
-                child: Row(
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const CircleAvatar(
+                  radius: 32,
+                  backgroundColor: Colors.green,
+                  child: Icon(Icons.check, color: Colors.white, size: 40),
+                ),
+                const SizedBox(height: 16),
+                const Text('Pembayaran Berhasil!', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 20, fontFamily: 'Inter')),
+                Text(invoiceNumber, style: const TextStyle(color: Colors.grey, fontSize: 13, fontFamily: 'Inter')),
+                const Divider(height: 32),
+                ...items.map((item) => Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 3),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(child: Text("${item['name']} x${item['quantity']}", style: const TextStyle(fontSize: 13, fontFamily: 'Inter'))),
+                      Text(_formatPrice(item['price'] * (item['quantity'] as int)), style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, fontFamily: 'Inter')),
+                    ],
+                  ),
+                )),
+                const Divider(height: 24),
+                Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Expanded(child: Text("${item['name']} x${item['quantity']}", style: const TextStyle(fontSize: 13, fontFamily: 'Inter'))),
-                    Text(_formatPrice(item['price'] * (item['quantity'] as int)), style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, fontFamily: 'Inter')),
+                    const Text('Total Tagihan', style: TextStyle(fontWeight: FontWeight.bold, fontFamily: 'Inter')),
+                    Text(_formatPrice(grandTotal), style: const TextStyle(fontWeight: FontWeight.w900, color: Color(0xFFC62828), fontSize: 16, fontFamily: 'Inter')),
                   ],
                 ),
-              )),
-              const Divider(height: 24),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text('Total Tagihan', style: TextStyle(fontWeight: FontWeight.bold, fontFamily: 'Inter')),
-                  Text(_formatPrice(grandTotal), style: const TextStyle(fontWeight: FontWeight.w900, color: Color(0xFFC62828), fontSize: 16, fontFamily: 'Inter')),
-                ],
-              ),
-              const SizedBox(height: 24),
-              SizedBox(
-                width: double.infinity,
-                height: 50,
-                child: ElevatedButton.icon(
-                  onPressed: isPrinting ? null : () async {
-                    setDialogState(() => isPrinting = true);
-                    try {
-                      final printItems = items.map((i) => {
-                        'name': i['name'] as String,
-                        'qty': i['quantity'] as int,
-                        'price': (i['price'] as int).toDouble(),
-                        'subtotal': ((i['price'] as int) * (i['quantity'] as int)).toDouble(),
-                      }).toList();
-                      await PrinterService.printReceiptWithDiag(
-                        storeName: AppConfig.storeName,
-                        cashierName: 'Kasir',
-                        transactionId: invoiceNumber,
-                        dateTime: DateTime.now(),
-                        items: printItems,
-                        subtotal: (grandTotal + discountAmount).toDouble(),
-                        tax: 0.0,
-                        total: grandTotal.toDouble(),
-                        paid: _isQRMode ? grandTotal.toDouble() : cash.toDouble(),
-                        change: _isQRMode ? 0.0 : change.toDouble(),
-                        note: _isQRMode ? 'NON TUNAI' : null,
-                        storeAddress: AppConfig.storeAddress,
-                      );
-                    } catch (_) {}
-                    finally { if (dialogContext.mounted) setDialogState(() => isPrinting = false); }
-                  },
-                  icon: isPrinting ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2.5, color: Colors.white)) : const Icon(Icons.print_rounded),
-                  label: Text(isPrinting ? 'Mencetak...' : 'Cetak Struk', style: const TextStyle(fontWeight: FontWeight.bold)),
-                  style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFC62828), foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16))),
+                const SizedBox(height: 24),
+                SizedBox(
+                  width: double.infinity,
+                  height: 50,
+                  child: ElevatedButton.icon(
+                    onPressed: isPrinting ? null : () async {
+                      setDialogState(() => isPrinting = true);
+                      try {
+                        final printItems = items.map((i) => {
+                          'name': i['name'] as String,
+                          'qty': i['quantity'] as int,
+                          'price': (i['price'] as int).toDouble(),
+                          'subtotal': ((i['price'] as int) * (i['quantity'] as int)).toDouble(),
+                        }).toList();
+                        await PrinterService.printReceiptWithDiag(
+                          storeName: AppConfig.storeName,
+                          cashierName: 'Kasir',
+                          transactionId: invoiceNumber,
+                          dateTime: DateTime.now(),
+                          items: printItems,
+                          subtotal: (grandTotal + discountAmount).toDouble(),
+                          tax: 0.0,
+                          total: grandTotal.toDouble(),
+                          paid: _isQRMode ? grandTotal.toDouble() : cash.toDouble(),
+                          change: _isQRMode ? 0.0 : change.toDouble(),
+                          note: _isQRMode ? 'NON TUNAI' : null,
+                          storeAddress: AppConfig.storeAddress,
+                        );
+                      } catch (_) {}
+                      finally { if (dialogContext.mounted) setDialogState(() => isPrinting = false); }
+                    },
+                    icon: isPrinting ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2.5, color: Colors.white)) : const Icon(Icons.print_rounded),
+                    label: Text(isPrinting ? 'Mencetak...' : 'Cetak Struk', style: const TextStyle(fontWeight: FontWeight.bold)),
+                    style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFC62828), foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16))),
+                  ),
                 ),
-              ),
-              const SizedBox(height: 12),
-              TextButton(
-                onPressed: () => Navigator.pushReplacementNamed(dialogContext, '/dashboard'),
-                child: const Text('Selesai', style: TextStyle(color: Colors.grey, fontWeight: FontWeight.w800, fontSize: 15)),
-              ),
-            ],
+                const SizedBox(height: 12),
+                TextButton(
+                  onPressed: () => Navigator.pushReplacementNamed(dialogContext, '/dashboard'),
+                  child: const Text('Selesai', style: TextStyle(color: Colors.grey, fontWeight: FontWeight.w800, fontSize: 15)),
+                ),
+              ],
+            ),
           ),
         ),
       ),
